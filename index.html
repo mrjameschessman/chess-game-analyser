@@ -380,6 +380,26 @@
             gap: 8px;
         }
 
+        .mute-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            min-width: 20px;
+        }
+
+        .mute-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .mute-btn.muted {
+            color: #e74c3c;
+        }
+
         .volume-slider {
             width: 80px;
             height: 4px;
@@ -663,7 +683,9 @@
                 </button>
                 
                 <div class="volume-control">
-                    <span>🔊</span>
+                    <button class="mute-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">
+                        <span id="muteIcon">🔊</span>
+                    </button>
                     <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50" onchange="setVolume(this.value)">
                 </div>
                 
@@ -1045,11 +1067,13 @@
         // Audio player setup
         let backgroundAudio = null;
         let audioInitialized = false;
+        let isMuted = false;
+        let previousVolume = 0.5; // Store volume before muting
 
         function initializeAudio() {
             if (!audioInitialized) {
                 // Replace 'background-music.mp3' with your actual filename
-                backgroundAudio = new Audio('My_Chill_Song__James_Kildea.mp3');
+                backgroundAudio = new Audio('background-music.mp3');
                 backgroundAudio.loop = true;
                 backgroundAudio.volume = 0.5; // 50% volume by default
                 
@@ -1114,7 +1138,21 @@
 
         function setVolume(value) {
             if (backgroundAudio) {
-                backgroundAudio.volume = value / 100;
+                const volume = value / 100;
+                backgroundAudio.volume = volume;
+                
+                // Update mute state and icon based on volume
+                if (volume === 0) {
+                    isMuted = true;
+                    updateMuteButton();
+                } else {
+                    if (isMuted) {
+                        isMuted = false;
+                        updateMuteButton();
+                    }
+                    previousVolume = volume;
+                }
+                
                 document.getElementById('audioStatus').textContent = `Volume: ${value}%`;
                 
                 // Reset status text after 2 seconds
@@ -1125,6 +1163,61 @@
                         document.getElementById('audioStatus').textContent = 'Playing';
                     }
                 }, 2000);
+            }
+        }
+
+        function toggleMute() {
+            if (!backgroundAudio) {
+                initializeAudio();
+                return;
+            }
+            
+            if (isMuted) {
+                // Unmute
+                isMuted = false;
+                backgroundAudio.volume = previousVolume;
+                document.getElementById('volumeSlider').value = previousVolume * 100;
+                document.getElementById('audioStatus').textContent = `Unmuted - Volume: ${Math.round(previousVolume * 100)}%`;
+            } else {
+                // Mute
+                isMuted = true;
+                previousVolume = backgroundAudio.volume;
+                backgroundAudio.volume = 0;
+                document.getElementById('volumeSlider').value = 0;
+                document.getElementById('audioStatus').textContent = 'Muted';
+            }
+            
+            updateMuteButton();
+            
+            // Reset status text after 2 seconds
+            setTimeout(() => {
+                if (backgroundAudio.paused) {
+                    document.getElementById('audioStatus').textContent = 'Paused';
+                } else {
+                    document.getElementById('audioStatus').textContent = 'Playing';
+                }
+            }, 2000);
+        }
+
+        function updateMuteButton() {
+            const muteBtn = document.getElementById('muteBtn');
+            const muteIcon = document.getElementById('muteIcon');
+            
+            if (isMuted || backgroundAudio.volume === 0) {
+                muteIcon.textContent = '🔇';
+                muteBtn.classList.add('muted');
+                muteBtn.title = 'Unmute';
+            } else {
+                // Different volume icons based on level
+                if (backgroundAudio.volume > 0.6) {
+                    muteIcon.textContent = '🔊';
+                } else if (backgroundAudio.volume > 0.3) {
+                    muteIcon.textContent = '🔉';
+                } else {
+                    muteIcon.textContent = '🔈';
+                }
+                muteBtn.classList.remove('muted');
+                muteBtn.title = 'Mute';
             }
         }
 
