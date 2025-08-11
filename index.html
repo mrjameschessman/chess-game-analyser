@@ -342,6 +342,76 @@
             align-items: center;
         }
 
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .audio-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .audio-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .audio-btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 4px;
+            background: #7f8c8d;
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .audio-info {
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+
         .file-input {
             margin: 10px 0;
         }
@@ -455,6 +525,17 @@
             .btn {
                 padding: 10px 16px;
                 font-size: 14px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .audio-controls {
+                flex-wrap: wrap;
+                justify-content: center;
             }
         }
     </style>
@@ -574,6 +655,21 @@
 
         <div class="status-bar">
             <span>Move: <span id="currentMove">0</span> / <span id="totalMoves">0</span></span>
+            
+            <div class="audio-controls">
+                <button class="audio-btn" id="playPauseBtn" onclick="toggleMusic()">
+                    <span id="playPauseIcon">🎵</span>
+                    <span id="playPauseText">Play</span>
+                </button>
+                
+                <div class="volume-control">
+                    <span>🔊</span>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50" onchange="setVolume(this.value)">
+                </div>
+                
+                <div class="audio-info" id="audioStatus">Music Ready</div>
+            </div>
+            
             <span id="statusMessage">Load a game to begin</span>
         </div>
     </div>
@@ -945,6 +1041,92 @@
 
         // Global game instance
         const chessGame = new ChessGame();
+
+        // Audio player setup
+        let backgroundAudio = null;
+        let audioInitialized = false;
+
+        function initializeAudio() {
+            if (!audioInitialized) {
+                // Replace 'background-music.mp3' with your actual filename
+                backgroundAudio = new Audio('My_Chill_Song__James_Kildea.mp3');
+                backgroundAudio.loop = true;
+                backgroundAudio.volume = 0.5; // 50% volume by default
+                
+                // Audio event listeners
+                backgroundAudio.addEventListener('loadeddata', function() {
+                    document.getElementById('audioStatus').textContent = 'Music Loaded';
+                });
+                
+                backgroundAudio.addEventListener('error', function() {
+                    document.getElementById('audioStatus').textContent = 'Music Error';
+                    document.getElementById('playPauseBtn').disabled = true;
+                });
+                
+                backgroundAudio.addEventListener('ended', function() {
+                    updateAudioButton(false);
+                });
+                
+                audioInitialized = true;
+            }
+        }
+
+        function toggleMusic() {
+            if (!audioInitialized) {
+                initializeAudio();
+            }
+            
+            if (backgroundAudio.paused) {
+                // Try to play - modern browsers require user interaction first
+                const playPromise = backgroundAudio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        updateAudioButton(true);
+                        document.getElementById('audioStatus').textContent = 'Playing';
+                    }).catch(error => {
+                        console.log('Playback failed:', error);
+                        document.getElementById('audioStatus').textContent = 'Playback Failed';
+                    });
+                }
+            } else {
+                backgroundAudio.pause();
+                updateAudioButton(false);
+                document.getElementById('audioStatus').textContent = 'Paused';
+            }
+        }
+
+        function updateAudioButton(isPlaying) {
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const playPauseIcon = document.getElementById('playPauseIcon');
+            const playPauseText = document.getElementById('playPauseText');
+            
+            if (isPlaying) {
+                playPauseIcon.textContent = '⏸️';
+                playPauseText.textContent = 'Pause';
+                playPauseBtn.style.background = '#e74c3c';
+            } else {
+                playPauseIcon.textContent = '🎵';
+                playPauseText.textContent = 'Play';
+                playPauseBtn.style.background = '#3498db';
+            }
+        }
+
+        function setVolume(value) {
+            if (backgroundAudio) {
+                backgroundAudio.volume = value / 100;
+                document.getElementById('audioStatus').textContent = `Volume: ${value}%`;
+                
+                // Reset status text after 2 seconds
+                setTimeout(() => {
+                    if (backgroundAudio.paused) {
+                        document.getElementById('audioStatus').textContent = 'Paused';
+                    } else {
+                        document.getElementById('audioStatus').textContent = 'Playing';
+                    }
+                }, 2000);
+            }
+        }
 
         // Unicode chess pieces
         const pieces = {
@@ -1325,6 +1507,12 @@ Be7 8.Bg5 O-O 9.dxc5 Be6 10.Nd4 Bxc5 11.Nxe6 fxe6 12.Bg4 Qd6
                         newGame();
                     }
                     break;
+                case ' ':
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') {
+                        e.preventDefault();
+                        toggleMusic();
+                    }
+                    break;
             }
         });
 
@@ -1332,6 +1520,15 @@ Be7 8.Bg5 O-O 9.dxc5 Be6 10.Nd4 Bxc5 11.Nxe6 fxe6 12.Bg4 Qd6
         document.addEventListener('DOMContentLoaded', function() {
             initChessboard();
             updatePosition();
+            
+            // Initialize audio on first user interaction (required by modern browsers)
+            document.addEventListener('click', function initAudioOnClick() {
+                if (!audioInitialized) {
+                    initializeAudio();
+                    // Remove this listener after first click
+                    document.removeEventListener('click', initAudioOnClick);
+                }
+            }, { once: true });
         });
     </script>
 </body>
