@@ -65,7 +65,6 @@
             border-right: 3px solid #3498db;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             min-width: 250px;
         }
@@ -109,6 +108,7 @@
             padding: 20px;
             border-radius: 10px;
             width: 100%;
+            margin-bottom: 20px;
         }
 
         .position-info h4 {
@@ -137,6 +137,7 @@
         .info-value {
             color: #2c3e50;
             font-family: 'Courier New', monospace;
+            font-weight: bold;
         }
 
         .control-panel {
@@ -268,29 +269,43 @@
         }
 
         .game-info {
-            background: white;
+            background: #f8f9fa;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
         }
 
         .game-info h4 {
             color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-align: center;
         }
 
         .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
         }
 
         .info-row:last-child {
             border-bottom: none;
+        }
+
+        .info-row span:first-child {
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        .info-row span:last-child {
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            flex: 1;
+            margin-left: 15px;
+            font-weight: bold;
         }
 
         .moves-display {
@@ -432,18 +447,6 @@
             color: #bdc3c7;
         }
 
-        .file-input {
-            margin: 10px 0;
-        }
-
-        .file-input input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            border: 2px dashed #3498db;
-            border-radius: 8px;
-            background: white;
-        }
-
         .error-message {
             background: #e74c3c;
             color: white;
@@ -460,6 +463,17 @@
             border-radius: 5px;
             margin: 10px 0;
             display: none;
+        }
+
+        .debug-info {
+            background: #f39c12;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none !important;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
         }
 
         .new-game-section {
@@ -552,11 +566,6 @@
                 gap: 10px;
                 text-align: center;
             }
-
-            .audio-controls {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
         }
     </style>
 </head>
@@ -603,48 +612,6 @@
                         <span class="info-value" id="positionType">Starting</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="control-panel">
-                <div class="new-game-section" id="newGameSection">
-                    <h3>🎯 Ready for a New Game?</h3>
-                    <p>Click "New Game" to clear the current game and load fresh content</p>
-                    <button class="btn btn-danger" onclick="newGame()">🆕 Start New Game</button>
-                </div>
-
-                <div class="game-loaded-indicator" id="gameLoadedIndicator">
-                    <h4>✅ Game Loaded</h4>
-                    <p>Use the navigation controls to explore the moves, or start a new game to load different content.</p>
-                </div>
-
-                <div class="input-section">
-                    <h3>🎯 Famous Games</h3>
-                    <select id="famousGamesSelect" onchange="loadFamousGame()" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; margin-bottom: 15px; background: white;">
-                        <option value="">Select a famous game...</option>
-                        <option value="marshall_gold_coins">Marshall's Gold Coin Game (1912)</option>
-                        <option value="fischer_game_century">Fischer's Game of the Century (1956)</option>
-                    </select>
-                    <div class="success-message" id="famousGameSuccess"></div>
-                </div>
-
-                <div class="input-section">
-                    <h3>📁 Load PGN File</h3>
-                    <div class="file-input">
-                        <input type="file" id="pgnFile" accept=".pgn" onchange="loadPGNFile()">
-                    </div>
-                    <textarea id="pgnInput" placeholder="Or paste PGN content here...&#10;&#10;[Event &quot;World Championship&quot;]&#10;[White &quot;Kasparov&quot;]&#10;[Black &quot;Deep Blue&quot;]&#10;&#10;1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6..."></textarea>
-                    <button class="btn btn-success" onclick="loadPGN()">Load PGN</button>
-                    <div class="error-message" id="pgnError"></div>
-                    <div class="success-message" id="pgnSuccess"></div>
-                </div>
-
-                <div class="input-section">
-                    <h3>✏️ Manual Move Input</h3>
-                    <textarea id="manualMoves" placeholder="Enter moves in algebraic notation:&#10;&#10;1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O..."></textarea>
-                    <button class="btn btn-success" onclick="loadManualMoves()">Load Moves</button>
-                    <div class="error-message" id="manualError"></div>
-                    <div class="success-message" id="manualSuccess"></div>
-                </div>
 
                 <div class="game-info" id="gameInfo">
                     <h4>🏆 Game Information</h4>
@@ -665,6 +632,42 @@
                         <span id="gameDate">-</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="control-panel">
+                <div class="new-game-section" id="newGameSection">
+                    <h3>🎯 Ready for a New Game?</h3>
+                    <p>Click "New Game" to clear the current game and load fresh content</p>
+                    <button class="btn btn-danger" onclick="newGame()">🆕 Start New Game</button>
+                </div>
+
+                <div class="game-loaded-indicator" id="gameLoadedIndicator">
+                    <h4>✅ Game Loaded</h4>
+                    <p>Use the navigation controls to explore the moves, or start a new game to load different content.</p>
+                </div>
+
+                <div class="debug-info" id="debugInfo">
+                    Debug info will appear here when needed
+                </div>
+
+                <div class="input-section">
+                    <h3>🎯 Famous Games</h3>
+                    <select id="famousGamesSelect" onchange="loadFamousGame()" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; margin-bottom: 15px; background: white;">
+                        <option value="">Select a famous game...</option>
+                        <option value="marshall_gold_coins">Marshall's Gold Coin Game (1912)</option>
+                        <option value="fischer_game_century">Fischer's Game of the Century (1956)</option>
+                        <option value="kildea_fletcher_morrow">James Kildea at the Fletcher Morrow Shield (2025)</option>
+                    </select>
+                    <div class="success-message" id="famousGameSuccess"></div>
+                </div>
+
+                <div class="input-section">
+                    <h3>✏️ Manual Move Input</h3>
+                    <textarea id="manualMoves" placeholder="Enter moves in algebraic notation:&#10;&#10;1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Be7 6.Re1 b5 7.Bb3 d6 8.c3 O-O..."></textarea>
+                    <button class="btn btn-success" onclick="loadManualMoves()">Load Moves</button>
+                    <div class="error-message" id="manualError"></div>
+                    <div class="success-message" id="manualSuccess"></div>
+                </div>
 
                 <div class="moves-display">
                     <h4>📝 Moves</h4>
@@ -675,32 +678,16 @@
 
         <div class="status-bar">
             <span>Move: <span id="currentMove">0</span> / <span id="totalMoves">0</span></span>
-            
-            <div class="audio-controls">
-                <button class="audio-btn" id="playPauseBtn" onclick="toggleMusic()">
-                    <span id="playPauseIcon">🎵</span>
-                    <span id="playPauseText">Play</span>
-                </button>
-                
-                <div class="volume-control">
-                    <button class="mute-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute">
-                        <span id="muteIcon">🔊</span>
-                    </button>
-                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50" onchange="setVolume(this.value)">
-                </div>
-                
-                <div class="audio-info" id="audioStatus">Music Ready</div>
-            </div>
-            
             <span id="statusMessage">Load a game to begin</span>
         </div>
     </div>
 
     <script>
-        // Simple Chess Game Manager
+        // Improved Chess Game Manager with better error handling and debugging
         class ChessGame {
             constructor() {
                 this.reset();
+                this.debugMode = false;
             }
 
             reset() {
@@ -714,6 +701,8 @@
                     date: '-',
                     result: '*'
                 };
+                this.boardHistory = []; // Store board states for each move
+                this.parseErrors = []; // Track parsing errors
             }
 
             createInitialBoard() {
@@ -730,52 +719,133 @@
             }
 
             parseSquare(square) {
+                if (!square || square.length !== 2) {
+                    throw new Error(`Invalid square notation: ${square}`);
+                }
                 const file = square.charCodeAt(0) - 'a'.charCodeAt(0);
                 const rank = 8 - parseInt(square[1]);
+                
+                if (file < 0 || file > 7 || rank < 0 || rank > 7 || isNaN(rank)) {
+                    throw new Error(`Invalid square coordinates: ${square}`);
+                }
+                
                 return [rank, file];
             }
 
             squareToNotation(rank, file) {
+                if (rank < 0 || rank > 7 || file < 0 || file > 7) {
+                    throw new Error(`Invalid coordinates: rank=${rank}, file=${file}`);
+                }
                 return String.fromCharCode('a'.charCodeAt(0) + file) + (8 - rank);
             }
 
+            // Deep clone a board to prevent reference issues
+            cloneBoard(board) {
+                return board.map(row => [...row]);
+            }
+
             applyMoveToBoard(board, move) {
-                const [fromRank, fromFile] = this.parseSquare(move.from);
-                const [toRank, toFile] = this.parseSquare(move.to);
-                
-                const piece = board[fromRank][fromFile];
-                board[toRank][toFile] = piece;
-                board[fromRank][fromFile] = '.';
-                
-                // Handle castling
-                if (piece === 'K' || piece === 'k') {
-                    if (Math.abs(toFile - fromFile) === 2) {
-                        if (toFile === 6) { // King side
-                            board[toRank][5] = board[toRank][7];
-                            board[toRank][7] = '.';
-                        } else if (toFile === 2) { // Queen side
-                            board[toRank][3] = board[toRank][0];
-                            board[toRank][0] = '.';
+                try {
+                    const [fromRank, fromFile] = this.parseSquare(move.from);
+                    const [toRank, toFile] = this.parseSquare(move.to);
+                    
+                    // Validate coordinates
+                    if (fromRank < 0 || fromRank > 7 || fromFile < 0 || fromFile > 7 ||
+                        toRank < 0 || toRank > 7 || toFile < 0 || toFile > 7) {
+                        throw new Error(`Invalid move coordinates: ${move.from} to ${move.to}`);
+                    }
+                    
+                    const piece = board[fromRank][fromFile];
+                    if (piece === '.') {
+                        this.debugLog(`Warning: Moving empty square from ${move.from}`);
+                    }
+                    
+                    // Apply the move
+                    board[toRank][toFile] = piece;
+                    board[fromRank][fromFile] = '.';
+                    
+                    // Handle castling
+                    if (piece === 'K' || piece === 'k') {
+                        const fileDiff = toFile - fromFile;
+                        if (Math.abs(fileDiff) === 2) {
+                            if (fileDiff === 2) { // King side castling
+                                if (board[toRank][7] === (piece === 'K' ? 'R' : 'r')) {
+                                    board[toRank][5] = board[toRank][7];
+                                    board[toRank][7] = '.';
+                                } else {
+                                    this.debugLog(`Warning: Castling move but no rook at expected position`);
+                                }
+                            } else if (fileDiff === -2) { // Queen side castling
+                                if (board[toRank][0] === (piece === 'K' ? 'R' : 'r')) {
+                                    board[toRank][3] = board[toRank][0];
+                                    board[toRank][0] = '.';
+                                } else {
+                                    this.debugLog(`Warning: Castling move but no rook at expected position`);
+                                }
+                            }
                         }
                     }
+                    
+                    // Handle en passant (basic detection)
+                    if ((piece === 'P' || piece === 'p') && Math.abs(fromFile - toFile) === 1 && board[toRank][toFile] === piece) {
+                        // This was an en passant capture, remove the captured pawn
+                        const capturedPawnRank = piece === 'P' ? toRank + 1 : toRank - 1;
+                        if (capturedPawnRank >= 0 && capturedPawnRank <= 7) {
+                            board[capturedPawnRank][toFile] = '.';
+                        }
+                    }
+                    
+                    return board;
+                } catch (error) {
+                    this.debugLog(`Error applying move ${move.from}-${move.to}: ${error.message}`);
+                    throw error;
                 }
-                
-                return board;
             }
 
             getCurrentBoard() {
-                let board = this.createInitialBoard();
-                
-                for (let i = 0; i < this.currentMove && i < this.moves.length; i++) {
-                    board = this.applyMoveToBoard(board, this.moves[i]);
+                try {
+                    // Use cached board history if available
+                    if (this.boardHistory[this.currentMove]) {
+                        return this.cloneBoard(this.boardHistory[this.currentMove]);
+                    }
+                    
+                    // Recalculate board state
+                    let board = this.createInitialBoard();
+                    this.boardHistory[0] = this.cloneBoard(board);
+                    
+                    for (let i = 0; i < this.currentMove && i < this.moves.length; i++) {
+                        try {
+                            board = this.applyMoveToBoard(this.cloneBoard(board), this.moves[i]);
+                            this.boardHistory[i + 1] = this.cloneBoard(board);
+                        } catch (error) {
+                            this.debugLog(`Error at move ${i + 1}: ${error.message}`);
+                            // Return the last valid board state
+                            return this.boardHistory[i] || this.createInitialBoard();
+                        }
+                    }
+                    
+                    return board;
+                } catch (error) {
+                    this.debugLog(`Error getting current board: ${error.message}`);
+                    return this.createInitialBoard();
                 }
-                
-                return board;
+            }
+
+            debugLog(message) {
+                if (this.debugMode) {
+                    console.log(`ChessGame Debug: ${message}`);
+                    const debugElement = document.getElementById('debugInfo');
+                    if (debugElement) {
+                        debugElement.innerHTML += `${message}<br>`;
+                        debugElement.style.display = 'block';
+                    }
+                }
             }
 
             loadPGN(pgnText) {
                 try {
                     this.reset();
+                    this.debugMode = false; // Disable debug mode for production
                     
                     // Extract headers
                     const headerRegex = /\[(\w+)\s+"([^"]+)"\]/g;
@@ -791,18 +861,27 @@
                         }
                     }
                     
-                    // Extract moves
+                    // Extract and clean moves
                     let movesSection = pgnText.replace(/\[[^\]]*\]/g, '').trim();
                     movesSection = movesSection.replace(/\{[^}]*\}/g, ''); // Remove comments
                     movesSection = movesSection.replace(/\([^)]*\)/g, ''); // Remove variations
                     movesSection = movesSection.replace(/[0-9]+\./g, ''); // Remove move numbers
                     movesSection = movesSection.replace(/1-0|0-1|1\/2-1\/2|\*/g, ''); // Remove results
+                    movesSection = movesSection.replace(/\+/g, ''); // Remove check symbols
+                    movesSection = movesSection.replace(/#/g, ''); // Remove checkmate symbols
+                    movesSection = movesSection.replace(/[!?]+/g, ''); // Remove annotation symbols
                     
                     const movesList = movesSection.split(/\s+/).filter(move => move.length > 0);
                     
-                    return this.loadMovesList(movesList);
+                    this.debugLog(`Extracted ${movesList.length} moves from PGN`);
+                    
+                    const result = this.loadMovesList(movesList);
+                    this.debugMode = false; // Disable debug mode after loading
+                    return result;
                 } catch (error) {
+                    this.debugLog(`PGN parsing error: ${error.message}`);
                     console.error('PGN parsing error:', error);
+                    this.debugMode = false;
                     return false;
                 }
             }
@@ -810,6 +889,8 @@
             loadManualMoves(movesText) {
                 try {
                     this.reset();
+                    this.debugMode = false; // Disable debug mode for production
+                    
                     this.gameInfo = {
                         white: 'Player 1',
                         black: 'Player 2',
@@ -822,12 +903,19 @@
                     let cleanMoves = movesText.replace(/\n/g, ' ');
                     cleanMoves = cleanMoves.replace(/[0-9]+\./g, ''); // Remove move numbers
                     cleanMoves = cleanMoves.replace(/\s+/g, ' ').trim();
+                    cleanMoves = cleanMoves.replace(/[+#!?]+/g, ''); // Remove annotations
                     
                     const movesList = cleanMoves.split(' ').filter(move => move.length > 0);
                     
-                    return this.loadMovesList(movesList);
+                    this.debugLog(`Processing ${movesList.length} manual moves`);
+                    
+                    const result = this.loadMovesList(movesList);
+                    this.debugMode = false;
+                    return result;
                 } catch (error) {
+                    this.debugLog(`Manual moves parsing error: ${error.message}`);
                     console.error('Manual moves parsing error:', error);
+                    this.debugMode = false;
                     return false;
                 }
             }
@@ -835,153 +923,281 @@
             loadMovesList(movesList) {
                 this.moves = [];
                 this.algebraicMoves = [];
+                this.boardHistory = [];
+                this.parseErrors = [];
                 
                 let board = this.createInitialBoard();
+                this.boardHistory[0] = this.cloneBoard(board);
                 
-                for (const moveStr of movesList) {
+                for (let i = 0; i < movesList.length; i++) {
                     try {
+                        const moveStr = movesList[i];
+                        this.debugLog(`Processing move ${i + 1}: ${moveStr}`);
+                        
                         const cleanMove = moveStr.replace(/[+#!?]$/g, '');
-                        const move = this.parseMove(cleanMove, board);
+                        const move = this.parseMove(cleanMove, board, this.moves.length);
+                        
                         if (move) {
-                            this.moves.push(move);
-                            this.algebraicMoves.push(moveStr);
-                            board = this.applyMoveToBoard([...board.map(row => [...row])], move);
+                            // Validate the move before applying
+                            try {
+                                const testBoard = this.cloneBoard(board);
+                                this.applyMoveToBoard(testBoard, move);
+                                
+                                // If we got here, the move is valid
+                                this.moves.push(move);
+                                this.algebraicMoves.push(moveStr);
+                                board = this.applyMoveToBoard(this.cloneBoard(board), move);
+                                this.boardHistory[i + 1] = this.cloneBoard(board);
+                                
+                                this.debugLog(`Successfully processed move ${i + 1}: ${moveStr} (${move.from}-${move.to})`);
+                            } catch (applyError) {
+                                this.debugLog(`Failed to apply move ${i + 1}: ${moveStr} - ${applyError.message}`);
+                                this.parseErrors.push(`Move ${i + 1}: ${moveStr} - ${applyError.message}`);
+                                // Continue with next move instead of breaking
+                                continue;
+                            }
+                        } else {
+                            this.debugLog(`Failed to parse move ${i + 1}: ${moveStr}`);
+                            this.parseErrors.push(`Move ${i + 1}: ${moveStr} - Could not parse`);
+                            // Continue with next move instead of breaking
+                            continue;
                         }
                     } catch (error) {
-                        console.warn(`Failed to parse move: ${moveStr}`, error);
+                        this.debugLog(`Error processing move ${i + 1}: ${movesList[i]} - ${error.message}`);
+                        this.parseErrors.push(`Move ${i + 1}: ${movesList[i]} - ${error.message}`);
+                        // Continue with next move instead of breaking
+                        continue;
                     }
+                }
+                
+                this.debugLog(`Successfully loaded ${this.moves.length} moves out of ${movesList.length} attempted`);
+                
+                if (this.parseErrors.length > 0) {
+                    this.debugLog(`Parse errors encountered: ${this.parseErrors.length}`);
+                    console.warn('Parse errors:', this.parseErrors);
                 }
                 
                 return this.moves.length > 0;
             }
 
-            parseMove(moveStr, board) {
-                const isWhite = this.moves.length % 2 === 0;
-                
-                // Handle castling
-                if (moveStr === 'O-O' || moveStr === '0-0') {
-                    const rank = isWhite ? 7 : 0;
-                    return { from: this.squareToNotation(rank, 4), to: this.squareToNotation(rank, 6) };
-                }
-                if (moveStr === 'O-O-O' || moveStr === '0-0-0') {
-                    const rank = isWhite ? 7 : 0;
-                    return { from: this.squareToNotation(rank, 4), to: this.squareToNotation(rank, 2) };
-                }
-                
-                // Simple move parsing - handles most common cases
-                if (moveStr.match(/^[a-h][1-8]$/)) {
-                    // Pawn move
-                    return this.findPawnMove(moveStr, board, isWhite);
-                } else if (moveStr.match(/^[a-h]x[a-h][1-8]$/)) {
+            parseMove(moveStr, board, moveNumber) {
+                try {
+                    const isWhite = moveNumber % 2 === 0;
+                    
+                    // Handle castling
+                    if (moveStr === 'O-O' || moveStr === '0-0') {
+                        const rank = isWhite ? 7 : 0;
+                        return { from: this.squareToNotation(rank, 4), to: this.squareToNotation(rank, 6), type: 'castle' };
+                    }
+                    if (moveStr === 'O-O-O' || moveStr === '0-0-0') {
+                        const rank = isWhite ? 7 : 0;
+                        return { from: this.squareToNotation(rank, 4), to: this.squareToNotation(rank, 2), type: 'castle' };
+                    }
+                    
+                    // Handle pawn promotion
+                    const promotionMatch = moveStr.match(/^([a-h][18])=([QRBN])$/);
+                    if (promotionMatch) {
+                        const toSquare = promotionMatch[1];
+                        const [toRank, toFile] = this.parseSquare(toSquare);
+                        const fromRank = isWhite ? toRank + 1 : toRank - 1;
+                        return { 
+                            from: this.squareToNotation(fromRank, toFile), 
+                            to: toSquare, 
+                            promotion: promotionMatch[2],
+                            type: 'promotion'
+                        };
+                    }
+                    
+                    // Handle pawn capture with promotion
+                    const pawnCapturePromotionMatch = moveStr.match(/^([a-h])x([a-h][18])=([QRBN])$/);
+                    if (pawnCapturePromotionMatch) {
+                        const fromFile = pawnCapturePromotionMatch[1].charCodeAt(0) - 'a'.charCodeAt(0);
+                        const toSquare = pawnCapturePromotionMatch[2];
+                        const [toRank, toFile] = this.parseSquare(toSquare);
+                        const fromRank = isWhite ? toRank + 1 : toRank - 1;
+                        return { 
+                            from: this.squareToNotation(fromRank, fromFile), 
+                            to: toSquare,
+                            promotion: pawnCapturePromotionMatch[3],
+                            type: 'promotion'
+                        };
+                    }
+                    
+                    // Simple pawn move
+                    if (moveStr.match(/^[a-h][1-8]$/)) {
+                        return this.findPawnMove(moveStr, board, isWhite);
+                    }
+                    
                     // Pawn capture
-                    const fromFile = moveStr.charCodeAt(0) - 'a'.charCodeAt(0);
-                    const toSquare = moveStr.substring(2);
-                    const [toRank, toFile] = this.parseSquare(toSquare);
-                    const fromRank = isWhite ? toRank + 1 : toRank - 1;
-                    return { from: this.squareToNotation(fromRank, fromFile), to: toSquare };
-                } else if (moveStr.match(/^[NBRQK]/)) {
-                    // Piece move
-                    const piece = moveStr[0];
-                    const isCapture = moveStr.includes('x');
-                    const toSquare = isCapture ? moveStr.split('x')[1] : moveStr.substring(1);
-                    return this.findPieceMove(piece, toSquare, board, isWhite);
+                    if (moveStr.match(/^[a-h]x[a-h][1-8]$/)) {
+                        const fromFile = moveStr.charCodeAt(0) - 'a'.charCodeAt(0);
+                        const toSquare = moveStr.substring(2);
+                        return this.findPawnCapture(fromFile, toSquare, board, isWhite);
+                    }
+                    
+                    // Piece moves
+                    if (moveStr.match(/^[NBRQK]/)) {
+                        const piece = moveStr[0];
+                        const isCapture = moveStr.includes('x');
+                        
+                        let disambiguator = '';
+                        let toSquare = '';
+                        
+                        if (isCapture) {
+                            const parts = moveStr.split('x');
+                            disambiguator = parts[0].substring(1);
+                            toSquare = parts[1];
+                        } else {
+                            disambiguator = moveStr.substring(1, moveStr.length - 2);
+                            toSquare = moveStr.substring(moveStr.length - 2);
+                        }
+                        
+                        return this.findPieceMove(piece, toSquare, disambiguator, board, isWhite);
+                    }
+                    
+                    this.debugLog(`Could not parse move format: ${moveStr}`);
+                    return null;
+                } catch (error) {
+                    this.debugLog(`Error parsing move ${moveStr}: ${error.message}`);
+                    return null;
                 }
-                
-                return null;
             }
 
             findPawnMove(toSquare, board, isWhite) {
-                const [toRank, toFile] = this.parseSquare(toSquare);
-                const pawn = isWhite ? 'P' : 'p';
-                
-                // Check one square back
-                const oneBack = isWhite ? toRank + 1 : toRank - 1;
-                if (oneBack >= 0 && oneBack < 8 && board[oneBack][toFile] === pawn) {
-                    return { from: this.squareToNotation(oneBack, toFile), to: toSquare };
+                try {
+                    const [toRank, toFile] = this.parseSquare(toSquare);
+                    const pawn = isWhite ? 'P' : 'p';
+                    
+                    // Check one square back
+                    const oneBack = isWhite ? toRank + 1 : toRank - 1;
+                    if (oneBack >= 0 && oneBack < 8 && board[oneBack][toFile] === pawn) {
+                        return { from: this.squareToNotation(oneBack, toFile), to: toSquare, type: 'pawn' };
+                    }
+                    
+                    // Check two squares back for initial pawn move
+                    const twoBack = isWhite ? toRank + 2 : toRank - 2;
+                    if (twoBack >= 0 && twoBack < 8 && board[twoBack][toFile] === pawn && 
+                        board[oneBack][toFile] === '.') {
+                        return { from: this.squareToNotation(twoBack, toFile), to: toSquare, type: 'pawn' };
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    this.debugLog(`Error in findPawnMove: ${error.message}`);
+                    return null;
                 }
-                
-                // Check two squares back for initial pawn move
-                const twoBack = isWhite ? toRank + 2 : toRank - 2;
-                if (twoBack >= 0 && twoBack < 8 && board[twoBack][toFile] === pawn) {
-                    return { from: this.squareToNotation(twoBack, toFile), to: toSquare };
-                }
-                
-                return null;
             }
 
-            findPieceMove(piece, toSquare, board, isWhite) {
-                const searchPiece = isWhite ? piece : piece.toLowerCase();
-                const [toRank, toFile] = this.parseSquare(toSquare);
-                
-                // Find all pieces of this type
-                const candidates = [];
-                for (let rank = 0; rank < 8; rank++) {
-                    for (let file = 0; file < 8; file++) {
-                        if (board[rank][file] === searchPiece) {
-                            candidates.push({ rank, file });
-                        }
+            findPawnCapture(fromFile, toSquare, board, isWhite) {
+                try {
+                    const [toRank, toFile] = this.parseSquare(toSquare);
+                    const pawn = isWhite ? 'P' : 'p';
+                    const fromRank = isWhite ? toRank + 1 : toRank - 1;
+                    
+                    if (fromRank >= 0 && fromRank < 8 && fromFile >= 0 && fromFile < 8 &&
+                        board[fromRank][fromFile] === pawn) {
+                        return { 
+                            from: this.squareToNotation(fromRank, fromFile), 
+                            to: toSquare, 
+                            type: 'pawn_capture'
+                        };
                     }
+                    
+                    return null;
+                } catch (error) {
+                    this.debugLog(`Error in findPawnCapture: ${error.message}`);
+                    return null;
                 }
-                
-                if (candidates.length === 1) {
-                    const from = this.squareToNotation(candidates[0].rank, candidates[0].file);
-                    return { from, to: toSquare };
-                }
-                
-                // Multiple pieces found - need to determine which one can legally move
-                if (candidates.length > 1) {
-                    // For knights, check which one can actually reach the target square
-                    if (piece.toLowerCase() === 'n') {
-                        for (const candidate of candidates) {
-                            if (this.isValidKnightMove(candidate.rank, candidate.file, toRank, toFile)) {
-                                const from = this.squareToNotation(candidate.rank, candidate.file);
-                                return { from, to: toSquare };
+            }
+
+            findPieceMove(piece, toSquare, disambiguator, board, isWhite) {
+                try {
+                    const searchPiece = isWhite ? piece : piece.toLowerCase();
+                    const [toRank, toFile] = this.parseSquare(toSquare);
+                    
+                    // Find all pieces of this type
+                    const candidates = [];
+                    for (let rank = 0; rank < 8; rank++) {
+                        for (let file = 0; file < 8; file++) {
+                            if (board[rank][file] === searchPiece) {
+                                candidates.push({ rank, file });
                             }
                         }
                     }
                     
-                    // For other pieces, implement basic path checking
-                    for (const candidate of candidates) {
-                        if (this.canPieceMove(piece.toLowerCase(), candidate.rank, candidate.file, toRank, toFile, board)) {
-                            const from = this.squareToNotation(candidate.rank, candidate.file);
-                            return { from, to: toSquare };
+                    if (candidates.length === 0) {
+                        this.debugLog(`No ${piece} found on board`);
+                        return null;
+                    }
+                    
+                    // Filter candidates based on disambiguator
+                    let validCandidates = candidates;
+                    
+                    if (disambiguator) {
+                        if (disambiguator.match(/^[a-h]$/)) {
+                            // File disambiguator
+                            const file = disambiguator.charCodeAt(0) - 'a'.charCodeAt(0);
+                            validCandidates = candidates.filter(c => c.file === file);
+                        } else if (disambiguator.match(/^[1-8]$/)) {
+                            // Rank disambiguator
+                            const rank = 8 - parseInt(disambiguator);
+                            validCandidates = candidates.filter(c => c.rank === rank);
+                        } else if (disambiguator.match(/^[a-h][1-8]$/)) {
+                            // Full square disambiguator
+                            const [dRank, dFile] = this.parseSquare(disambiguator);
+                            validCandidates = candidates.filter(c => c.rank === dRank && c.file === dFile);
                         }
                     }
                     
-                    // If no valid move found, return the first candidate as fallback
-                    const from = this.squareToNotation(candidates[0].rank, candidates[0].file);
-                    return { from, to: toSquare };
+                    // Find the candidate that can legally move to the target square
+                    for (const candidate of validCandidates) {
+                        if (this.canPieceMoveTo(piece.toLowerCase(), candidate.rank, candidate.file, toRank, toFile, board)) {
+                            const from = this.squareToNotation(candidate.rank, candidate.file);
+                            return { from, to: toSquare, type: 'piece' };
+                        }
+                    }
+                    
+                    // If no valid move found but we have candidates, try the first one as fallback
+                    if (validCandidates.length > 0) {
+                        this.debugLog(`No legal move found, using first candidate for ${piece} to ${toSquare}`);
+                        const from = this.squareToNotation(validCandidates[0].rank, validCandidates[0].file);
+                        return { from, to: toSquare, type: 'piece' };
+                    }
+                    
+                    this.debugLog(`No valid candidates found for ${piece} to ${toSquare}`);
+                    return null;
+                } catch (error) {
+                    this.debugLog(`Error in findPieceMove: ${error.message}`);
+                    return null;
                 }
-                
-                return null;
+            }
+
+            canPieceMoveTo(piece, fromRank, fromFile, toRank, toFile, board) {
+                try {
+                    switch (piece) {
+                        case 'n':
+                            return this.isValidKnightMove(fromRank, fromFile, toRank, toFile);
+                        case 'r':
+                            return this.isValidRookMove(fromRank, fromFile, toRank, toFile, board);
+                        case 'b':
+                            return this.isValidBishopMove(fromRank, fromFile, toRank, toFile, board);
+                        case 'q':
+                            return this.isValidQueenMove(fromRank, fromFile, toRank, toFile, board);
+                        case 'k':
+                            return this.isValidKingMove(fromRank, fromFile, toRank, toFile);
+                        default:
+                            return false;
+                    }
+                } catch (error) {
+                    this.debugLog(`Error checking piece move validity: ${error.message}`);
+                    return false;
+                }
             }
 
             isValidKnightMove(fromRank, fromFile, toRank, toFile) {
                 const rankDiff = Math.abs(toRank - fromRank);
                 const fileDiff = Math.abs(toFile - fromFile);
                 return (rankDiff === 2 && fileDiff === 1) || (rankDiff === 1 && fileDiff === 2);
-            }
-
-            canPieceMove(piece, fromRank, fromFile, toRank, toFile, board) {
-                switch (piece) {
-                    case 'n':
-                        return this.isValidKnightMove(fromRank, fromFile, toRank, toFile);
-                    
-                    case 'r':
-                        return this.isValidRookMove(fromRank, fromFile, toRank, toFile, board);
-                    
-                    case 'b':
-                        return this.isValidBishopMove(fromRank, fromFile, toRank, toFile, board);
-                    
-                    case 'q':
-                        return this.isValidQueenMove(fromRank, fromFile, toRank, toFile, board);
-                    
-                    case 'k':
-                        return this.isValidKingMove(fromRank, fromFile, toRank, toFile);
-                    
-                    default:
-                        return false;
-                }
             }
 
             isValidRookMove(fromRank, fromFile, toRank, toFile, board) {
@@ -1004,21 +1220,29 @@
             }
 
             isPathClear(fromRank, fromFile, toRank, toFile, board) {
-                const rankStep = toRank > fromRank ? 1 : (toRank < fromRank ? -1 : 0);
-                const fileStep = toFile > fromFile ? 1 : (toFile < fromFile ? -1 : 0);
-                
-                let currentRank = fromRank + rankStep;
-                let currentFile = fromFile + fileStep;
-                
-                while (currentRank !== toRank || currentFile !== toFile) {
-                    if (board[currentRank][currentFile] !== '.') {
-                        return false;
+                try {
+                    const rankStep = toRank > fromRank ? 1 : (toRank < fromRank ? -1 : 0);
+                    const fileStep = toFile > fromFile ? 1 : (toFile < fromFile ? -1 : 0);
+                    
+                    let currentRank = fromRank + rankStep;
+                    let currentFile = fromFile + fileStep;
+                    
+                    while (currentRank !== toRank || currentFile !== toFile) {
+                        if (currentRank < 0 || currentRank > 7 || currentFile < 0 || currentFile > 7) {
+                            return false;
+                        }
+                        if (board[currentRank][currentFile] !== '.') {
+                            return false;
+                        }
+                        currentRank += rankStep;
+                        currentFile += fileStep;
                     }
-                    currentRank += rankStep;
-                    currentFile += fileStep;
+                    
+                    return true;
+                } catch (error) {
+                    this.debugLog(`Error checking path: ${error.message}`);
+                    return false;
                 }
-                
-                return true;
             }
 
             nextMove() {
@@ -1050,176 +1274,34 @@
             }
 
             getPosition() {
-                return {
-                    board: this.getCurrentBoard(),
-                    move_number: this.currentMove,
-                    total_moves: this.moves.length,
-                    algebraic_moves: this.algebraicMoves,
-                    game_info: this.gameInfo,
-                    last_move: this.currentMove > 0 ? this.moves[this.currentMove - 1] : null
-                };
+                try {
+                    const board = this.getCurrentBoard();
+                    return {
+                        board: board,
+                        move_number: this.currentMove,
+                        total_moves: this.moves.length,
+                        algebraic_moves: this.algebraicMoves,
+                        game_info: this.gameInfo,
+                        last_move: this.currentMove > 0 ? this.moves[this.currentMove - 1] : null,
+                        parse_errors: this.parseErrors
+                    };
+                } catch (error) {
+                    console.error('Error getting position:', error);
+                    return {
+                        board: this.createInitialBoard(),
+                        move_number: 0,
+                        total_moves: 0,
+                        algebraic_moves: [],
+                        game_info: this.gameInfo,
+                        last_move: null,
+                        parse_errors: this.parseErrors
+                    };
+                }
             }
         }
 
         // Global game instance
         const chessGame = new ChessGame();
-
-        // Audio player setup
-        let backgroundAudio = null;
-        let audioInitialized = false;
-        let isMuted = false;
-        let previousVolume = 0.5; // Store volume before muting
-
-        function initializeAudio() {
-            if (!audioInitialized) {
-                // Replace 'background-music.mp3' with your actual filename
-                backgroundAudio = new Audio('My_Chill_Song__James_Kildea.mp3');
-                backgroundAudio.loop = true;
-                backgroundAudio.volume = 0.5; // 50% volume by default
-                
-                // Audio event listeners
-                backgroundAudio.addEventListener('loadeddata', function() {
-                    document.getElementById('audioStatus').textContent = 'Music Loaded';
-                });
-                
-                backgroundAudio.addEventListener('error', function() {
-                    document.getElementById('audioStatus').textContent = 'Music Error';
-                    document.getElementById('playPauseBtn').disabled = true;
-                });
-                
-                backgroundAudio.addEventListener('ended', function() {
-                    updateAudioButton(false);
-                });
-                
-                audioInitialized = true;
-            }
-        }
-
-        function toggleMusic() {
-            if (!audioInitialized) {
-                initializeAudio();
-            }
-            
-            if (backgroundAudio.paused) {
-                // Try to play - modern browsers require user interaction first
-                const playPromise = backgroundAudio.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        updateAudioButton(true);
-                        document.getElementById('audioStatus').textContent = 'Playing';
-                    }).catch(error => {
-                        console.log('Playback failed:', error);
-                        document.getElementById('audioStatus').textContent = 'Playback Failed';
-                    });
-                }
-            } else {
-                backgroundAudio.pause();
-                updateAudioButton(false);
-                document.getElementById('audioStatus').textContent = 'Paused';
-            }
-        }
-
-        function updateAudioButton(isPlaying) {
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            const playPauseIcon = document.getElementById('playPauseIcon');
-            const playPauseText = document.getElementById('playPauseText');
-            
-            if (isPlaying) {
-                playPauseIcon.textContent = '⏸️';
-                playPauseText.textContent = 'Pause';
-                playPauseBtn.style.background = '#e74c3c';
-            } else {
-                playPauseIcon.textContent = '🎵';
-                playPauseText.textContent = 'Play';
-                playPauseBtn.style.background = '#3498db';
-            }
-        }
-
-        function setVolume(value) {
-            if (backgroundAudio) {
-                const volume = value / 100;
-                backgroundAudio.volume = volume;
-                
-                // Update mute state and icon based on volume
-                if (volume === 0) {
-                    isMuted = true;
-                    updateMuteButton();
-                } else {
-                    if (isMuted) {
-                        isMuted = false;
-                        updateMuteButton();
-                    }
-                    previousVolume = volume;
-                }
-                
-                document.getElementById('audioStatus').textContent = `Volume: ${value}%`;
-                
-                // Reset status text after 2 seconds
-                setTimeout(() => {
-                    if (backgroundAudio.paused) {
-                        document.getElementById('audioStatus').textContent = 'Paused';
-                    } else {
-                        document.getElementById('audioStatus').textContent = 'Playing';
-                    }
-                }, 2000);
-            }
-        }
-
-        function toggleMute() {
-            if (!backgroundAudio) {
-                initializeAudio();
-                return;
-            }
-            
-            if (isMuted) {
-                // Unmute
-                isMuted = false;
-                backgroundAudio.volume = previousVolume;
-                document.getElementById('volumeSlider').value = previousVolume * 100;
-                document.getElementById('audioStatus').textContent = `Unmuted - Volume: ${Math.round(previousVolume * 100)}%`;
-            } else {
-                // Mute
-                isMuted = true;
-                previousVolume = backgroundAudio.volume;
-                backgroundAudio.volume = 0;
-                document.getElementById('volumeSlider').value = 0;
-                document.getElementById('audioStatus').textContent = 'Muted';
-            }
-            
-            updateMuteButton();
-            
-            // Reset status text after 2 seconds
-            setTimeout(() => {
-                if (backgroundAudio.paused) {
-                    document.getElementById('audioStatus').textContent = 'Paused';
-                } else {
-                    document.getElementById('audioStatus').textContent = 'Playing';
-                }
-            }, 2000);
-        }
-
-        function updateMuteButton() {
-            const muteBtn = document.getElementById('muteBtn');
-            const muteIcon = document.getElementById('muteIcon');
-            
-            if (isMuted || backgroundAudio.volume === 0) {
-                muteIcon.textContent = '🔇';
-                muteBtn.classList.add('muted');
-                muteBtn.title = 'Unmute';
-            } else {
-                // Different volume icons based on level
-                if (backgroundAudio.volume > 0.6) {
-                    muteIcon.textContent = '🔊';
-                } else if (backgroundAudio.volume > 0.3) {
-                    muteIcon.textContent = '🔉';
-                } else {
-                    muteIcon.textContent = '🔈';
-                }
-                muteBtn.classList.remove('muted');
-                muteBtn.title = 'Mute';
-            }
-        }
 
         // Unicode chess pieces
         const pieces = {
@@ -1244,166 +1326,247 @@
         }
 
         function updateBoard(boardArray) {
-            // Clear all squares
-            document.querySelectorAll('.square').forEach(square => {
-                square.textContent = '';
-                square.classList.remove('highlight');
-            });
-            
-            // Place pieces
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
-                    const piece = boardArray[row][col];
-                    if (piece !== '.') {
-                        const squareId = String.fromCharCode(97 + col) + (8 - row);
-                        const square = document.getElementById(squareId);
-                        if (square) {
-                            square.textContent = pieces[piece] || '';
+            try {
+                // Clear all squares first
+                document.querySelectorAll('.square').forEach(square => {
+                    square.textContent = '';
+                    square.classList.remove('highlight');
+                });
+                
+                // Validate board array
+                if (!boardArray || boardArray.length !== 8) {
+                    console.error('Invalid board array');
+                    return;
+                }
+                
+                // Place pieces
+                for (let row = 0; row < 8; row++) {
+                    if (!boardArray[row] || boardArray[row].length !== 8) {
+                        console.error(`Invalid board row ${row}`);
+                        continue;
+                    }
+                    
+                    for (let col = 0; col < 8; col++) {
+                        const piece = boardArray[row][col];
+                        if (piece !== '.') {
+                            const squareId = String.fromCharCode(97 + col) + (8 - row);
+                            const square = document.getElementById(squareId);
+                            if (square) {
+                                const pieceSymbol = pieces[piece];
+                                if (pieceSymbol) {
+                                    square.textContent = pieceSymbol;
+                                } else {
+                                    console.warn(`Unknown piece: ${piece} at ${squareId}`);
+                                }
+                            } else {
+                                console.error(`Square not found: ${squareId}`);
+                            }
                         }
                     }
                 }
+            } catch (error) {
+                console.error('Error updating board:', error);
             }
         }
 
         function highlightLastMove(lastMove) {
-            // Remove previous highlight
-            if (currentHighlight) {
-                currentHighlight.forEach(square => square.classList.remove('highlight'));
-            }
-            
-            if (lastMove) {
-                const fromSquare = document.getElementById(lastMove.from);
-                const toSquare = document.getElementById(lastMove.to);
-                
-                if (fromSquare && toSquare) {
-                    fromSquare.classList.add('highlight');
-                    toSquare.classList.add('highlight');
-                    currentHighlight = [fromSquare, toSquare];
+            try {
+                // Remove previous highlight
+                if (currentHighlight) {
+                    currentHighlight.forEach(square => {
+                        if (square) {
+                            square.classList.remove('highlight');
+                        }
+                    });
+                    currentHighlight = null;
                 }
+                
+                if (lastMove && lastMove.from && lastMove.to) {
+                    const fromSquare = document.getElementById(lastMove.from);
+                    const toSquare = document.getElementById(lastMove.to);
+                    
+                    if (fromSquare && toSquare) {
+                        fromSquare.classList.add('highlight');
+                        toSquare.classList.add('highlight');
+                        currentHighlight = [fromSquare, toSquare];
+                    }
+                }
+            } catch (error) {
+                console.error('Error highlighting move:', error);
             }
         }
 
         function updateGameInfo(gameInfo) {
-            document.getElementById('whitePlayer').textContent = gameInfo.white || '-';
-            document.getElementById('blackPlayer').textContent = gameInfo.black || '-';
-            document.getElementById('eventName').textContent = gameInfo.event || '-';
-            document.getElementById('gameDate').textContent = gameInfo.date || '-';
+            try {
+                document.getElementById('whitePlayer').textContent = gameInfo.white || '-';
+                document.getElementById('blackPlayer').textContent = gameInfo.black || '-';
+                document.getElementById('eventName').textContent = gameInfo.event || '-';
+                document.getElementById('gameDate').textContent = gameInfo.date || '-';
+            } catch (error) {
+                console.error('Error updating game info:', error);
+            }
         }
 
         function updateMovesList(moves, currentMove) {
-            const movesList = document.getElementById('movesList');
-            movesList.innerHTML = '';
-            
-            moves.forEach((move, index) => {
-                const moveElement = document.createElement('span');
-                moveElement.className = `move-item ${index < currentMove ? 'played' : ''} ${index === currentMove - 1 ? 'current' : ''}`;
-                moveElement.textContent = `${Math.floor(index / 2) + 1}${index % 2 === 0 ? '.' : '...'} ${move}`;
-                moveElement.onclick = () => goToMove(index + 1);
-                movesList.appendChild(moveElement);
-            });
+            try {
+                const movesList = document.getElementById('movesList');
+                movesList.innerHTML = '';
+                
+                moves.forEach((move, index) => {
+                    const moveElement = document.createElement('span');
+                    moveElement.className = `move-item ${index < currentMove ? 'played' : ''} ${index === currentMove - 1 ? 'current' : ''}`;
+                    moveElement.textContent = `${Math.floor(index / 2) + 1}${index % 2 === 0 ? '.' : '...'} ${move}`;
+                    moveElement.onclick = () => goToMove(index + 1);
+                    movesList.appendChild(moveElement);
+                });
+            } catch (error) {
+                console.error('Error updating moves list:', error);
+            }
         }
 
         function updateMoveDisplay(positionData) {
-            const moveNumber = positionData.move_number;
-            const totalMoves = positionData.total_moves;
-            const algebraicMoves = positionData.algebraic_moves;
-            
-            // Update progress counters
-            document.getElementById('progressCurrent').textContent = moveNumber;
-            document.getElementById('progressTotal').textContent = totalMoves;
-            
-            if (moveNumber === 0) {
-                // Starting position
-                document.getElementById('displayMoveNumber').textContent = '-';
-                document.getElementById('displayMoveText').textContent = 'Start';
-                document.getElementById('displayMoveDescription').textContent = 'Starting position';
-                document.getElementById('toMoveDisplay').textContent = 'White';
-                document.getElementById('positionType').textContent = 'Opening';
-            } else {
-                // Calculate the full move number (1, 2, 3, etc.)
-                const fullMoveNumber = Math.ceil(moveNumber / 2);
-                const isWhiteMove = (moveNumber - 1) % 2 === 0;
-                const currentMove = algebraicMoves[moveNumber - 1];
+            try {
+                const moveNumber = positionData.move_number;
+                const totalMoves = positionData.total_moves;
+                const algebraicMoves = positionData.algebraic_moves;
                 
-                // Display the move number with dots
-                const moveNumberDisplay = isWhiteMove ? 
-                    `${fullMoveNumber}.` : 
-                    `${fullMoveNumber}...`;
+                // Update progress counters
+                document.getElementById('progressCurrent').textContent = moveNumber;
+                document.getElementById('progressTotal').textContent = totalMoves;
                 
-                document.getElementById('displayMoveNumber').textContent = moveNumberDisplay;
-                document.getElementById('displayMoveText').textContent = currentMove;
-                
-                // Create move description
-                const playerColor = isWhiteMove ? 'White' : 'Black';
-                const nextToMove = isWhiteMove ? 'Black' : 'White';
-                document.getElementById('displayMoveDescription').textContent = 
-                    `${playerColor} played ${currentMove}`;
-                
-                document.getElementById('toMoveDisplay').textContent = nextToMove;
-                
-                // Determine position type based on move number
-                let positionType;
-                if (moveNumber <= 10) {
-                    positionType = 'Opening';
-                } else if (moveNumber <= totalMoves * 0.7) {
-                    positionType = 'Middlegame';
+                if (moveNumber === 0) {
+                    // Starting position
+                    document.getElementById('displayMoveNumber').textContent = '-';
+                    document.getElementById('displayMoveText').textContent = 'Start';
+                    document.getElementById('displayMoveDescription').textContent = 'Starting position';
+                    document.getElementById('toMoveDisplay').textContent = 'White';
+                    document.getElementById('positionType').textContent = 'Opening';
+                } else if (moveNumber <= algebraicMoves.length) {
+                    // Calculate the full move number (1, 2, 3, etc.)
+                    const fullMoveNumber = Math.ceil(moveNumber / 2);
+                    const isWhiteMove = (moveNumber - 1) % 2 === 0;
+                    const currentMove = algebraicMoves[moveNumber - 1];
+                    
+                    // Display the move number with dots
+                    const moveNumberDisplay = isWhiteMove ? 
+                        `${fullMoveNumber}.` : 
+                        `${fullMoveNumber}...`;
+                    
+                    document.getElementById('displayMoveNumber').textContent = moveNumberDisplay;
+                    document.getElementById('displayMoveText').textContent = currentMove || 'Error';
+                    
+                    // Create move description
+                    const playerColor = isWhiteMove ? 'White' : 'Black';
+                    const nextToMove = isWhiteMove ? 'Black' : 'White';
+                    document.getElementById('displayMoveDescription').textContent = 
+                        `${playerColor} played ${currentMove || 'Error'}`;
+                    
+                    document.getElementById('toMoveDisplay').textContent = nextToMove;
+                    
+                    // Determine position type based on move number
+                    let positionType;
+                    if (moveNumber <= 10) {
+                        positionType = 'Opening';
+                    } else if (moveNumber <= totalMoves * 0.7) {
+                        positionType = 'Middlegame';
+                    } else {
+                        positionType = 'Endgame';
+                    }
+                    document.getElementById('positionType').textContent = positionType;
                 } else {
-                    positionType = 'Endgame';
+                    // Error state
+                    document.getElementById('displayMoveNumber').textContent = 'Error';
+                    document.getElementById('displayMoveText').textContent = 'Error';
+                    document.getElementById('displayMoveDescription').textContent = 'Invalid move number';
+                    document.getElementById('toMoveDisplay').textContent = '-';
+                    document.getElementById('positionType').textContent = 'Error';
                 }
-                document.getElementById('positionType').textContent = positionType;
+            } catch (error) {
+                console.error('Error updating move display:', error);
             }
         }
 
         function updateGameLoadedIndicator() {
-            const indicator = document.getElementById('gameLoadedIndicator');
-            const newGameSection = document.getElementById('newGameSection');
-            
-            if (chessGame.hasGameLoaded()) {
-                indicator.classList.add('show');
-                newGameSection.style.display = 'none';
-            } else {
-                indicator.classList.remove('show');
-                newGameSection.style.display = 'block';
+            try {
+                const indicator = document.getElementById('gameLoadedIndicator');
+                const newGameSection = document.getElementById('newGameSection');
+                
+                if (chessGame.hasGameLoaded()) {
+                    indicator.classList.add('show');
+                    newGameSection.style.display = 'none';
+                } else {
+                    indicator.classList.remove('show');
+                    newGameSection.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error updating game loaded indicator:', error);
             }
         }
 
         function updatePosition() {
-            const positionData = chessGame.getPosition();
-            
-            updateBoard(positionData.board);
-            highlightLastMove(positionData.last_move);
-            updateGameInfo(positionData.game_info);
-            updateMovesList(positionData.algebraic_moves, positionData.move_number);
-            updateMoveDisplay(positionData);
-            updateGameLoadedIndicator();
-            
-            document.getElementById('currentMove').textContent = positionData.move_number;
-            document.getElementById('totalMoves').textContent = positionData.total_moves;
-            
-            if (positionData.total_moves === 0) {
-                document.getElementById('statusMessage').textContent = 'Load a game to begin';
-            } else if (positionData.move_number === 0) {
-                document.getElementById('statusMessage').textContent = 'Starting position';
-            } else {
-                document.getElementById('statusMessage').textContent = 
-                    `After ${positionData.algebraic_moves[positionData.move_number - 1]}`;
+            try {
+                const positionData = chessGame.getPosition();
+                
+                updateBoard(positionData.board);
+                highlightLastMove(positionData.last_move);
+                updateGameInfo(positionData.game_info);
+                updateMovesList(positionData.algebraic_moves, positionData.move_number);
+                updateMoveDisplay(positionData);
+                updateGameLoadedIndicator();
+                
+                document.getElementById('currentMove').textContent = positionData.move_number;
+                document.getElementById('totalMoves').textContent = positionData.total_moves;
+                
+                if (positionData.total_moves === 0) {
+                    document.getElementById('statusMessage').textContent = 'Load a game to begin';
+                } else if (positionData.move_number === 0) {
+                    document.getElementById('statusMessage').textContent = 'Starting position';
+                } else if (positionData.move_number <= positionData.algebraic_moves.length) {
+                    document.getElementById('statusMessage').textContent = 
+                        `After ${positionData.algebraic_moves[positionData.move_number - 1]}`;
+                } else {
+                    document.getElementById('statusMessage').textContent = 'End of game';
+                }
+                
+                // Show parse errors if any
+                if (positionData.parse_errors && positionData.parse_errors.length > 0) {
+                    console.warn('Parse errors detected:', positionData.parse_errors);
+                }
+            } catch (error) {
+                console.error('Error updating position:', error);
+                document.getElementById('statusMessage').textContent = 'Error updating position';
             }
         }
 
         function showMessage(elementId, message, isError = false) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.style.display = 'block';
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 3000);
+            try {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.textContent = message;
+                    element.style.display = 'block';
+                    setTimeout(() => {
+                        element.style.display = 'none';
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Error showing message:', error);
+            }
         }
 
         function clearInputs() {
-            document.getElementById('pgnInput').value = '';
-            document.getElementById('manualMoves').value = '';
-            document.getElementById('pgnFile').value = '';
-            document.getElementById('famousGamesSelect').selectedIndex = 0;
+            try {
+                document.getElementById('manualMoves').value = '';
+                document.getElementById('famousGamesSelect').selectedIndex = 0;
+                
+                // Clear debug info
+                const debugElement = document.getElementById('debugInfo');
+                if (debugElement) {
+                    debugElement.style.display = 'none';
+                    debugElement.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Error clearing inputs:', error);
+            }
         }
 
         // Famous games database
@@ -1455,173 +1618,200 @@ Be7 8.Bg5 O-O 9.dxc5 Be6 10.Nd4 Bxc5 11.Nxe6 fxe6 12.Bg4 Qd6
 31. Nf3 Ne4 32. Qb8 b5 33. h4 h5 34. Ne5 Kg7 35. Kg1 Bc5+
 36. Kf1 Ng3+ 37. Ke1 Bb4+ 38. Kd1 Bb3+ 39. Kc1 Ne2+ 40. Kb1 Nc3+
 41. Kc1 Rc2# 0-1`
+            },
+            kildea_fletcher_morrow: {
+                name: "James Kildea at the Fletcher Morrow Shield (2025)",
+                description: "James Kildea vs Jason Barnett, 2025 - A modern tactical victory",
+                pgn: `[Event "Fletcher Morrow Shield"]
+[Site "Ballarat Mechanics Institute"]
+[Date "2025.8.10"]
+[Round "1"]
+[White "James Kildea (Me)"]
+[Black "Jason Barnett"]
+[Result "1-0"]
+[WhiteELO "943"]
+[BlackELO "990"]
+
+1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Bf5 5. Ng3 Bg6 6. Nf3 e6 7. Ne5 Nf6 8.
+Nxg6 hxg6 9. Be3 Nd5 10. Qd2 Nxe3 11. Qxe3 Bb4+ 12. c3 Ba5 13. Be2 Nd7 14.
+Ne4 Qe7 15. O-O Bc7 16. h3 Qh4 17. c4 Qf4 18. Qxf4 Bxf4 19. Rfd1 f5 20. Nc3
+Nf6 21. d5 cxd5 22. cxd5 exd5 23. Nxd5 Nxd5 24. Rxd5 Ke7 25. Re1 Kf6 26. g3
+Be5 27. Rd7 Rxh3 28. Bc4 Bxb2 29. f4 Bd4+ 30. Kg2 1-0`
             }
         };
 
         function loadFamousGame() {
-            const selectedGame = document.getElementById('famousGamesSelect').value;
-            
-            if (!selectedGame || !FAMOUS_GAMES[selectedGame]) {
-                return;
-            }
-            
-            const game = FAMOUS_GAMES[selectedGame];
-            
-            if (chessGame.loadPGN(game.pgn)) {
-                updatePosition();
-                showMessage('famousGameSuccess', `${game.name} loaded successfully!`);
-                document.getElementById('statusMessage').textContent = `${game.name} - ${game.description}`;
+            try {
+                const selectedGame = document.getElementById('famousGamesSelect').value;
                 
-                // Clear other inputs to avoid confusion
-                document.getElementById('pgnInput').value = '';
-                document.getElementById('manualMoves').value = '';
-                document.getElementById('pgnFile').value = '';
-            } else {
+                if (!selectedGame || !FAMOUS_GAMES[selectedGame]) {
+                    return;
+                }
+                
+                const game = FAMOUS_GAMES[selectedGame];
+                
+                if (chessGame.loadPGN(game.pgn)) {
+                    updatePosition();
+                    showMessage('famousGameSuccess', `${game.name} loaded successfully!`);
+                    document.getElementById('statusMessage').textContent = `${game.name} - ${game.description}`;
+                    
+                    // Clear other inputs to avoid confusion
+                    document.getElementById('manualMoves').value = '';
+                } else {
+                    showMessage('famousGameSuccess', 'Error loading the selected game', true);
+                }
+            } catch (error) {
+                console.error('Error loading famous game:', error);
                 showMessage('famousGameSuccess', 'Error loading the selected game', true);
             }
         }
 
         function newGame() {
-            // Confirm if there's a game loaded
-            if (chessGame.hasGameLoaded()) {
-                if (!confirm('Are you sure you want to start a new game? This will clear the current game.')) {
-                    return;
+            try {
+                // Confirm if there's a game loaded
+                if (chessGame.hasGameLoaded()) {
+                    if (!confirm('Are you sure you want to start a new game? This will clear the current game.')) {
+                        return;
+                    }
                 }
-            }
-            
-            // Reset the game
-            chessGame.reset();
-            
-            // Clear all input fields
-            clearInputs();
-            
-            // Hide all messages
-            document.querySelectorAll('.error-message, .success-message').forEach(msg => {
-                msg.style.display = 'none';
-            });
-            
-            // Update display
-            updatePosition();
-            
-            // Show success message
-            document.getElementById('statusMessage').textContent = 'Ready for new game - load PGN or enter moves';
-        }
-
-        function loadPGN() {
-            const pgnContent = document.getElementById('pgnInput').value;
-            if (!pgnContent.trim()) {
-                showMessage('pgnError', 'Please enter PGN content', true);
-                return;
-            }
-
-            if (chessGame.loadPGN(pgnContent)) {
+                
+                // Reset the game
+                chessGame.reset();
+                
+                // Clear all input fields
+                clearInputs();
+                
+                // Hide all messages
+                document.querySelectorAll('.error-message, .success-message, .debug-info').forEach(msg => {
+                    msg.style.display = 'none';
+                });
+                
+                // Update display
                 updatePosition();
-                showMessage('pgnSuccess', 'PGN loaded successfully!');
-                document.getElementById('statusMessage').textContent = 'PGN loaded successfully!';
-            } else {
-                showMessage('pgnError', 'Error: Invalid PGN format or no valid moves found', true);
+                
+                // Show success message
+                document.getElementById('statusMessage').textContent = 'Ready for new game - load famous games or enter moves';
+            } catch (error) {
+                console.error('Error starting new game:', error);
             }
         }
 
         function loadManualMoves() {
-            const moves = document.getElementById('manualMoves').value;
-            if (!moves.trim()) {
-                showMessage('manualError', 'Please enter moves', true);
-                return;
-            }
+            try {
+                const moves = document.getElementById('manualMoves').value;
+                if (!moves.trim()) {
+                    showMessage('manualError', 'Please enter moves', true);
+                    return;
+                }
 
-            if (chessGame.loadManualMoves(moves)) {
-                updatePosition();
-                showMessage('manualSuccess', 'Moves loaded successfully!');
-                document.getElementById('statusMessage').textContent = 'Moves loaded successfully!';
-            } else {
-                showMessage('manualError', 'Error: Invalid move format or no valid moves found', true);
+                if (chessGame.loadManualMoves(moves)) {
+                    updatePosition();
+                    showMessage('manualSuccess', 'Moves loaded successfully!');
+                    document.getElementById('statusMessage').textContent = 'Moves loaded successfully!';
+                } else {
+                    showMessage('manualError', 'Error: Invalid move format or no valid moves found', true);
+                }
+            } catch (error) {
+                console.error('Error loading manual moves:', error);
+                showMessage('manualError', 'Error: Failed to load moves', true);
             }
         }
 
         function nextMove() {
-            if (chessGame.nextMove()) {
-                updatePosition();
+            try {
+                if (chessGame.nextMove()) {
+                    updatePosition();
+                }
+            } catch (error) {
+                console.error('Error going to next move:', error);
+                document.getElementById('statusMessage').textContent = 'Error navigating to next move';
             }
         }
 
         function previousMove() {
-            if (chessGame.previousMove()) {
-                updatePosition();
+            try {
+                if (chessGame.previousMove()) {
+                    updatePosition();
+                }
+            } catch (error) {
+                console.error('Error going to previous move:', error);
+                document.getElementById('statusMessage').textContent = 'Error navigating to previous move';
             }
         }
 
         function resetToStart() {
-            chessGame.currentMove = 0;
-            updatePosition();
+            try {
+                chessGame.currentMove = 0;
+                updatePosition();
+            } catch (error) {
+                console.error('Error resetting to start:', error);
+                document.getElementById('statusMessage').textContent = 'Error resetting to start';
+            }
         }
 
         function goToMove(moveNumber) {
-            if (chessGame.goToMove(moveNumber)) {
-                updatePosition();
+            try {
+                if (chessGame.goToMove(moveNumber)) {
+                    updatePosition();
+                }
+            } catch (error) {
+                console.error('Error going to move:', error);
+                document.getElementById('statusMessage').textContent = 'Error navigating to move';
             }
         }
 
-        function loadPGNFile() {
-            const fileInput = document.getElementById('pgnFile');
-            const file = fileInput.files[0];
-            
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('pgnInput').value = e.target.result;
-                    loadPGN();
-                };
-                reader.readAsText(file);
-            }
-        }
-
-        // Keyboard shortcuts
+        // Keyboard shortcuts with error handling
         document.addEventListener('keydown', function(e) {
-            if (e.target.tagName === 'TEXTAREA') return;
-            
-            switch(e.key) {
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    previousMove();
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    nextMove();
-                    break;
-                case 'Home':
-                    e.preventDefault();
-                    resetToStart();
-                    break;
-                case 'n':
-                case 'N':
-                    if (e.ctrlKey || e.metaKey) {
+            try {
+                if (e.target.tagName === 'TEXTAREA') return;
+                
+                switch(e.key) {
+                    case 'ArrowLeft':
                         e.preventDefault();
-                        newGame();
-                    }
-                    break;
-                case ' ':
-                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') {
+                        previousMove();
+                        break;
+                    case 'ArrowRight':
                         e.preventDefault();
-                        toggleMusic();
-                    }
-                    break;
+                        nextMove();
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        resetToStart();
+                        break;
+                    case 'n':
+                    case 'N':
+                        if (e.ctrlKey || e.metaKey) {
+                            e.preventDefault();
+                            newGame();
+                        }
+                        break;
+                }
+            } catch (error) {
+                console.error('Error handling keyboard shortcut:', error);
             }
         });
 
         // Initialize the board when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            initChessboard();
-            updatePosition();
-            
-            // Initialize audio on first user interaction (required by modern browsers)
-            document.addEventListener('click', function initAudioOnClick() {
-                if (!audioInitialized) {
-                    initializeAudio();
-                    // Remove this listener after first click
-                    document.removeEventListener('click', initAudioOnClick);
-                }
-            }, { once: true });
+            try {
+                initChessboard();
+                updatePosition();
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                document.getElementById('statusMessage').textContent = 'Error during initialization';
+            }
+        });
+
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            document.getElementById('statusMessage').textContent = 'An error occurred - please refresh the page';
+        });
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+            document.getElementById('statusMessage').textContent = 'An error occurred - please refresh the page';
         });
     </script>
 </body>
