@@ -679,7 +679,19 @@
         <div class="status-bar">
             <span>Move: <span id="currentMove">0</span> / <span id="totalMoves">0</span></span>
             <span id="statusMessage">Load a game to begin</span>
-        </div>
+            <div class="audio-controls">
+                <audio id="backgroundMusic" src="My_Chill_Song__James_Kildea.mp3" loop></audio>
+                <button id="playPauseBtn" class="audio-btn">
+                    ▶ Play
+                </button>
+                <div class="volume-control">
+                    <button id="muteBtn" class="mute-btn" title="Mute">
+                        🔊
+                    </button>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                </div>
+            </div>
+            </div>
     </div>
 
     <script>
@@ -1759,6 +1771,58 @@ Be5 27. Rd7 Rxh3 28. Bc4 Bxb2 29. f4 Bd4+ 30. Kg2 1-0`
                 document.getElementById('statusMessage').textContent = 'Error navigating to move';
             }
         }
+
+        // --- Music Player Logic ---
+        const audio = document.getElementById('backgroundMusic');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const volumeSlider = document.getElementById('volumeSlider');
+        let isPlaying = false;
+        let lastVolume = 0.5;
+
+        playPauseBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                playPauseBtn.innerHTML = '▶ Play';
+            } else {
+                audio.play();
+                playPauseBtn.innerHTML = '❚❚ Pause';
+            }
+            isPlaying = !isPlaying;
+        });
+
+        muteBtn.addEventListener('click', () => {
+            if (audio.muted) {
+                audio.muted = false;
+                muteBtn.innerHTML = '🔊';
+                muteBtn.classList.remove('muted');
+                volumeSlider.value = lastVolume;
+            } else {
+                lastVolume = volumeSlider.value;
+                audio.muted = true;
+                muteBtn.innerHTML = '🔇';
+                muteBtn.classList.add('muted');
+                volumeSlider.value = 0;
+            }
+        });
+
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value;
+            if (audio.volume > 0 && audio.muted) {
+                audio.muted = false;
+                muteBtn.innerHTML = '🔊';
+                muteBtn.classList.remove('muted');
+            } else if (audio.volume === 0 && !audio.muted) {
+                audio.muted = true;
+                muteBtn.innerHTML = '🔇';
+                muteBtn.classList.add('muted');
+            }
+        });
+
+        // Initialize volume slider
+        audio.volume = volumeSlider.value;
+        // --- End Music Player Logic ---
+
 
         // Keyboard shortcuts with error handling
         document.addEventListener('keydown', function(e) {
