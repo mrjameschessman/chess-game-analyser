@@ -431,6 +431,91 @@
             font-size: 0.9em;
         }
 
+        /* Music Player Styles */
+        .music-player {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .music-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .music-btn {
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .music-btn:hover {
+            background: #2980b9;
+        }
+
+        .music-btn:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 6px;
+            background: #34495e;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .song-info {
+            color: #ecf0f1;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        .time-display {
+            color: #bdc3c7;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 flex-direction: column;
@@ -476,6 +561,16 @@
                 gap: 10px;
                 text-align: center;
             }
+
+            .music-player {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .music-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -491,9 +586,9 @@
                 <div class="chessboard" id="chessboard"></div>
                 
                 <div class="controls">
-                    <button class="btn btn-secondary" onclick="resetToStart()">⏮ Start</button>
-                    <button class="btn btn-primary" onclick="previousMove()">⏪ Previous</button>
-                    <button class="btn btn-primary" onclick="nextMove()">Next ⏩</button>
+                    <button class="btn btn-secondary" onclick="resetToStart()">⮐ Start</button>
+                    <button class="btn btn-primary" onclick="previousMove()">⬅ Previous</button>
+                    <button class="btn btn-primary" onclick="nextMove()">Next ➡</button>
                     <button class="btn btn-danger" onclick="newGame()">🆕 New Game</button>
                 </div>
             </div>
@@ -567,7 +662,7 @@
                         <option value="marshall_gold_coins">Marshall's Gold Coin Game (1912)</option>
                         <option value="fischer_game_century">Fischer's Game of the Century (1956)</option>
                         <option value="kildea_fletcher_morrow">James Kildea at the Fletcher Morrow Shield (2025)</option>
-			<option value="kildea_direnzo_swiss">James vs Robert at the GCC Winter Swiss (2025)</option>
+                        <option value="kildea_direnzo_swiss">James vs Robert at the GCC Winter Swiss (2025)</option>
                     </select>
                     <div class="success-message" id="famousGameSuccess"></div>
                 </div>
@@ -581,7 +676,7 @@
                 </div>
 
                 <div class="moves-display">
-                    <h4>📝 Moves</h4>
+                    <h4>🔍 Moves</h4>
                     <div class="move-list" id="movesList"></div>
                 </div>
             </div>
@@ -590,6 +685,26 @@
         <div class="status-bar">
             <span>Move: <span id="currentMove">0</span> / <span id="totalMoves">0</span></span>
             <span id="statusMessage">Load a game to begin</span>
+        </div>
+
+        <!-- Music Player -->
+        <div class="music-player">
+            <div class="song-info">🎵 My Chill Song - James Kildea</div>
+            <div class="music-controls">
+                <button class="music-btn" id="playBtn" onclick="togglePlay()">Play</button>
+                <button class="music-btn" id="stopBtn" onclick="stopMusic()">Stop</button>
+                <button class="music-btn" id="muteBtn" onclick="toggleMute()">Mute</button>
+            </div>
+            <div class="volume-control">
+                <span style="font-size: 12px;">Volume:</span>
+                <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="50" oninput="setVolume(this.value)">
+                <span id="volumeDisplay" style="font-size: 12px; width: 30px;">50%</span>
+            </div>
+            <div class="time-display" id="timeDisplay">0:00 / 0:00</div>
+            <audio id="audioPlayer" preload="metadata">
+                <source src="My_Chill_Song__James_Kildea.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
         </div>
     </div>
 
@@ -1171,6 +1286,11 @@
 
         let currentHighlight = null;
 
+        // Music Player Variables
+        let audioPlayer;
+        let isPlaying = false;
+        let isMuted = false;
+
         function initChessboard() {
             const board = document.getElementById('chessboard');
             board.innerHTML = '';
@@ -1183,6 +1303,84 @@
                     board.appendChild(square);
                 }
             }
+        }
+
+        function initMusicPlayer() {
+            audioPlayer = document.getElementById('audioPlayer');
+            
+            // Event listeners for audio player
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                updateTimeDisplay();
+            });
+            
+            audioPlayer.addEventListener('timeupdate', function() {
+                updateTimeDisplay();
+            });
+            
+            audioPlayer.addEventListener('ended', function() {
+                isPlaying = false;
+                document.getElementById('playBtn').textContent = 'Play';
+            });
+            
+            audioPlayer.addEventListener('error', function() {
+                console.warn('Audio file could not be loaded');
+            });
+            
+            // Set initial volume
+            audioPlayer.volume = 0.5;
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                audioPlayer.pause();
+                document.getElementById('playBtn').textContent = 'Play';
+                isPlaying = false;
+            } else {
+                audioPlayer.play().then(() => {
+                    document.getElementById('playBtn').textContent = 'Pause';
+                    isPlaying = true;
+                }).catch(error => {
+                    console.warn('Audio playback failed:', error);
+                });
+            }
+        }
+
+        function stopMusic() {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            document.getElementById('playBtn').textContent = 'Play';
+            isPlaying = false;
+            updateTimeDisplay();
+        }
+
+        function toggleMute() {
+            if (isMuted) {
+                audioPlayer.muted = false;
+                document.getElementById('muteBtn').textContent = 'Mute';
+                isMuted = false;
+            } else {
+                audioPlayer.muted = true;
+                document.getElementById('muteBtn').textContent = 'Unmute';
+                isMuted = true;
+            }
+        }
+
+        function setVolume(value) {
+            audioPlayer.volume = value / 100;
+            document.getElementById('volumeDisplay').textContent = value + '%';
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimeDisplay() {
+            const current = audioPlayer.currentTime || 0;
+            const duration = audioPlayer.duration || 0;
+            document.getElementById('timeDisplay').textContent = 
+                `${formatTime(current)} / ${formatTime(duration)}`;
         }
 
         function updateBoard(boardArray) {
@@ -1460,8 +1658,8 @@
 
 1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Bf5 5. Ng3 Bg6 6. Nf3 e6 7. Ne5 Nf6 8. Nxg6 hxg6 9. Be3 Nd5 10. Qd2 Nxe3 11. Qxe3 Bb4+ 12. c3 Ba5 13. Be2 Nd7 14. Ne4 Qe7 15. O-O Bc7 16. h3 Qh4 17. c4 Qf4 18. Qxf4 Bxf4 19. Rfd1 f5 20. Nc3 Nf6 21. d5 cxd5 22. cxd5 exd5 23. Nxd5 Nxd5 24. Rxd5 Ke7 25. Re1 Kf6 26. g3 Be5 27. Rd7 Rxh3 28. Bc4 Bxb2 29. f4 Bd4+ 30. Kg2 1-0`
             },
-		kildea_direnzo_swiss: {
-                name: "James James vs Robert at the GCC Winter Swiss (2025)",
+            kildea_direnzo_swiss: {
+                name: "James vs Robert at the GCC Winter Swiss (2025)",
                 description: "James vs Robert at the GCC Winter Swiss Round 4",
                 pgn: `[Event "GCC Winter Swiss"]
 [Site "Geelong Chess Club"]
@@ -1619,10 +1817,11 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
             }
         });
 
-        // Initialize the board when page loads
+        // Initialize the board and music player when page loads
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 initChessboard();
+                initMusicPlayer();
                 updatePosition();
             } catch (error) {
                 console.error('Error during initialization:', error);
@@ -1644,4 +1843,3 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
     </script>
 </body>
 </html>
-                    
