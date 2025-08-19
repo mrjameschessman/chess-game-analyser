@@ -357,39 +357,6 @@
             align-items: center;
         }
 
-        /* NEW STATUS BAR STYLES */
-        .status-bar-container {
-            display: flex;
-            width: 100%;
-            align-items: center;
-        }
-
-        .status-move-number {
-            flex: 1; /* First quarter */
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        .status-audio-player {
-            flex: 1; /* Second quarter */
-            display: flex;
-            justify-content: center;
-            padding: 0 10px;
-        }
-
-        .status-audio-player audio {
-            width: 100%;
-        }
-
-        .status-description {
-            flex: 2; /* Merged third and fourth quarters */
-            text-align: left;
-            font-size: 0.9em;
-            padding-left: 20px;
-        }
-        /* END NEW STATUS BAR STYLES */
-
         .error-message {
             background: #e74c3c;
             color: white;
@@ -509,27 +476,6 @@
                 gap: 10px;
                 text-align: center;
             }
-
-            /* NEW MOBILE STYLES */
-            .status-bar-container {
-                flex-direction: column;
-            }
-
-            .status-move-number, .status-audio-player, .status-description {
-                flex: none;
-                width: 100%;
-                text-align: center;
-                padding: 5px 0;
-            }
-            
-            .status-audio-player {
-                 margin: 10px 0;
-            }
-
-            .status-description {
-                padding-left: 0;
-            }
-            /* END NEW MOBILE STYLES */
         }
     </style>
 </head>
@@ -642,20 +588,8 @@
         </div>
 
         <div class="status-bar">
-            <div class="status-bar-container">
-                <div class="status-move-number">
-                    <span>Move: <span id="currentMove">0</span> / <span id="totalMoves">0</span></span>
-                </div>
-                <div class="status-audio-player">
-                    <audio id="audioPlayer" controls>
-                        <source src="My_Chill_Song__James_Kildea.mp3" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
-                <div class="status-description" id="gameDescription">
-                    Load a game to begin
-                </div>
-            </div>
+            <span>Move: <span id="currentMove">0</span> / <span id="totalMoves">0</span></span>
+            <span id="statusMessage">Load a game to begin</span>
         </div>
     </div>
 
@@ -944,7 +878,7 @@
                     
                     // Simple pawn move
                     if (moveStr.match(/^[a-h][1-8]$/)) {
-                        return this.findPawnMove(toSquare, board, isWhite);
+                        return this.findPawnMove(moveStr, board, isWhite);
                     }
                     
                     // Pawn capture
@@ -1432,27 +1366,23 @@
                 document.getElementById('currentMove').textContent = positionData.move_number;
                 document.getElementById('totalMoves').textContent = positionData.total_moves;
                 
-                // New logic for the game description in the status bar
-                const gameDescriptionElement = document.getElementById('gameDescription');
-                if (positionData.game_info.event === 'Manual Input') {
-                    gameDescriptionElement.textContent = 'Manual Input Game';
-                } else if (positionData.game_info.white !== '-' && positionData.game_info.black !== '-') {
-                    const loadedGame = Object.values(FAMOUS_GAMES).find(game => game.pgn.includes(`[Event "${positionData.game_info.event}"]`));
-                    if (loadedGame) {
-                        gameDescriptionElement.textContent = `${loadedGame.name} - ${loadedGame.description}`;
-                    } else {
-                        gameDescriptionElement.textContent = `${positionData.game_info.event} - ${positionData.game_info.white} vs ${positionData.game_info.black}, ${positionData.game_info.date}`;
-                    }
+                if (positionData.total_moves === 0) {
+                    document.getElementById('statusMessage').textContent = 'Load a game to begin';
+                } else if (positionData.move_number === 0) {
+                    document.getElementById('statusMessage').textContent = 'Starting position';
+                } else if (positionData.move_number <= positionData.algebraic_moves.length) {
+                    document.getElementById('statusMessage').textContent = 
+                        `After ${positionData.algebraic_moves[positionData.move_number - 1]}`;
                 } else {
-                    gameDescriptionElement.textContent = 'Load a game to begin';
+                    document.getElementById('statusMessage').textContent = 'End of game';
                 }
-
+                
                 if (positionData.parse_errors && positionData.parse_errors.length > 0) {
                     console.warn('Parse errors detected:', positionData.parse_errors);
                 }
             } catch (error) {
                 console.error('Error updating position:', error);
-                document.getElementById('gameDescription').textContent = 'Error updating position';
+                document.getElementById('statusMessage').textContent = 'Error updating position';
             }
         }
 
@@ -1494,6 +1424,7 @@
                 pgn: `[Event "18th DSB Kongress"]
 [Site "Breslau GER"]
 [Date "1912.07.20"]
+[EventDate "1912.07.15"]
 [Round "6"]
 [Result "0-1"]
 [White "Stefan Levitsky"]
@@ -1559,6 +1490,7 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
                 if (chessGame.loadPGN(game.pgn)) {
                     updatePosition();
                     showMessage('famousGameSuccess', `${game.name} loaded successfully!`);
+                    document.getElementById('statusMessage').textContent = `${game.name} - ${game.description}`;
                     
                     document.getElementById('manualMoves').value = '';
                 } else {
@@ -1586,6 +1518,7 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
                 });
                 
                 updatePosition();
+                document.getElementById('statusMessage').textContent = 'Ready for new game - load famous games or enter moves';
             } catch (error) {
                 console.error('Error starting new game:', error);
             }
@@ -1602,6 +1535,7 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
                 if (chessGame.loadManualMoves(moves)) {
                     updatePosition();
                     showMessage('manualSuccess', 'Moves loaded successfully!');
+                    document.getElementById('statusMessage').textContent = 'Moves loaded successfully!';
                 } else {
                     showMessage('manualError', 'Error: Invalid move format or no valid moves found', true);
                 }
@@ -1618,6 +1552,7 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
                 }
             } catch (error) {
                 console.error('Error going to next move:', error);
+                document.getElementById('statusMessage').textContent = 'Error navigating to next move';
             }
         }
 
@@ -1628,6 +1563,7 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
                 }
             } catch (error) {
                 console.error('Error going to previous move:', error);
+                document.getElementById('statusMessage').textContent = 'Error navigating to previous move';
             }
         }
 
@@ -1637,6 +1573,7 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
                 updatePosition();
             } catch (error) {
                 console.error('Error resetting to start:', error);
+                document.getElementById('statusMessage').textContent = 'Error resetting to start';
             }
         }
 
@@ -1647,6 +1584,7 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
                 }
             } catch (error) {
                 console.error('Error going to move:', error);
+                document.getElementById('statusMessage').textContent = 'Error navigating to move';
             }
         }
 
@@ -1688,21 +1626,22 @@ Qf5+ Kf7 28. Qh7+ Ke6 29. Qf5+ `
                 updatePosition();
             } catch (error) {
                 console.error('Error during initialization:', error);
-                document.getElementById('gameDescription').textContent = 'Error during initialization';
+                document.getElementById('statusMessage').textContent = 'Error during initialization';
             }
         });
 
         // Global error handler
         window.addEventListener('error', function(e) {
             console.error('Global error:', e.error);
-            document.getElementById('gameDescription').textContent = 'An error occurred - please refresh the page';
+            document.getElementById('statusMessage').textContent = 'An error occurred - please refresh the page';
         });
 
         // Unhandled promise rejection handler
         window.addEventListener('unhandledrejection', function(e) {
             console.error('Unhandled promise rejection:', e.reason);
-            document.getElementById('gameDescription').textContent = 'An error occurred - please refresh the page';
+            document.getElementById('statusMessage').textContent = 'An error occurred - please refresh the page';
         });
     </script>
 </body>
 </html>
+                    
