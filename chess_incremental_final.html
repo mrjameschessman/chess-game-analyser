@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Master Incremental</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            grid-column: 1 / -1;
+        }
+
+        .stats {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .brain-cells {
+            font-size: 2em;
+            color: #e74c3c;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        .brain-cells-per-second {
+            font-size: 1.2em;
+            color: #3498db;
+            margin-top: 10px;
+        }
+
+        .click-button {
+            width: 100%;
+            height: 80px;
+            font-size: 1.5em;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .click-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .click-button:active {
+            transform: translateY(0);
+        }
+
+        .pieces-section h2, .upgrades-section h2 {
+            margin-bottom: 15px;
+            color: #f39c12;
+            border-bottom: 2px solid #f39c12;
+            padding-bottom: 5px;
+        }
+
+        .piece-item, .upgrade-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-item {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+        }
+
+        .piece-item.black-piece {
+            border-left-color: #2c3e50;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .piece-item.special-piece {
+            border-left-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .piece-item.black-piece .piece-name {
+            border-left-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+            color: #ecf0f1;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .black-piece-emoji {
+            filter: brightness(0.3) sepia(1) hue-rotate(200deg) saturate(3);
+            text-shadow: 0 0 3px #000;
+        }
+
+        /* Make black chess piece emojis actually appear black */
+        .piece-item:nth-child(n+7) .piece-name::first-letter,
+        .upgrade-item .upgrade-name::first-letter {
+            filter: brightness(0.2) contrast(2);
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Target specific black piece emojis */
+        .piece-name:contains("♟️"), .piece-name:contains("♞"), .piece-name:contains("♝"), 
+        .piece-name:contains("♜"), .piece-name:contains("♛"), .piece-name:contains("♚"),
+        .upgrade-name:contains("♟️"), .upgrade-name:contains("♞"), .upgrade-name:contains("♝"), 
+        .upgrade-name:contains("♜"), .upgrade-name:contains("♛"), .upgrade-name:contains("♚") {
+            filter: brightness(0.3);
+        }
+
+        .piece-info, .upgrade-info {
+            flex: 1;
+        }
+
+        .piece-name, .upgrade-name {
+            font-weight: bold;
+            font-size: 0.95em;
+            margin-bottom: 3px;
+        }
+
+        .upgrade-name {
+            font-size: 0.95em;
+            margin-bottom: 3px;
+        }
+
+        .piece-details, .upgrade-details {
+            font-size: 0.8em;
+            color: #bdc3c7;
+            line-height: 1.2;
+        }
+
+        .upgrade-details {
+            font-size: 0.8em;
+            line-height: 1.2;
+        }
+
+        .buy-button {
+            padding: 6px 12px;
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-item .buy-button {
+            padding: 6px 12px;
+            font-size: 0.9em;
+            min-width: 80px;
+        }
+
+        .buy-button:hover:not(:disabled) {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            transform: scale(1.05);
+        }
+
+        .buy-button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .prestige-section {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+            border: 2px solid #e74c3c;
+        }
+
+        .save-section {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            border: 2px solid #2980b9;
+            margin-top: 10px;
+        }
+
+        .save-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .prestige-button {
+            padding: 15px 30px;
+            font-size: 1.3em;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .save-button {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .load-button {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .prestige-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .save-button:hover, .load-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .prestige-button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .multiplier {
+            color: #f39c12;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .save-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .chess-square {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .chess-square.white {
+            background: #f0d9b5;
+            color: #333;
+        }
+
+        .chess-square.black {
+            background: #b58863;
+            color: #333;
+        }
+
+        .chess-piece {
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .chess-piece.collected {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+            transform: scale(1.1);
+        }
+
+        .chess-piece.missing {
+            opacity: 0.3;
+            filter: grayscale(100%) brightness(1.5);
+            position: relative;
+        }
+
+        .chess-piece.missing::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 2px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .chess-square:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .progress-indicator {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .chess-clock-display {
+            width: 60px;
+            height: 80px;
+            background: rgba(52, 73, 94, 0.8);
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .chess-clock-display.collected {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
+            transform: scale(1.05);
+        }
+
+        .chess-clock-display.missing {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        .chess-clock-display.missing::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 2px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            z-index: 1;
+        }
+
+        .chess-clock-label {
+            font-size: 10px;
+            color: #bdc3c7;
+            margin-top: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Chess Master Incremental 🧠</h1>
+        
+        <div class="panel">
+            <div class="stats">
+                <div class="brain-cells" id="brainCells">0</div>
+                <div>Brain Cells</div>
+                <div class="brain-cells-per-second" id="brainCellsPerSecond">0.0/sec</div>
+                <div class="multiplier" id="multiplier">Multiplier: x1.00</div>
+                <div class="multiplier" id="clickPower" style="color: #e67e22;">Click Power: 1</div>
+            </div>
+            
+            <button class="click-button" id="clickButton">🧠 Think Hard! 🧠</button>
+            
+            <div class="pieces-section">
+                <h2>♟️ Chess Pieces</h2>
+                <div id="piecesContainer"></div>
+                
+                <div id="prestigeRequirements" style="margin-top: 20px; padding: 15px; background: rgba(231, 76, 60, 0.1); border-radius: 8px; border: 1px solid #e74c3c;">
+                    <h3 style="color: #e74c3c; margin-bottom: 10px; text-align: center;">🏆 Complete Chess Set Required for Prestige</h3>
+                    <div id="chessBoard" style="display: flex; flex-direction: column; align-items: center; margin: 15px 0;">
+                        <div id="chessBoardContainer" style="display: flex; align-items: center; gap: 15px;">
+                            <div id="chessClock" style="display: flex; flex-direction: column; align-items: center;">
+                                <!-- Chess Clock will be placed here -->
+                            </div>
+                            <div id="actualChessBoard" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0; border: 2px solid #34495e; border-radius: 8px; overflow: hidden; background: #2c3e50;">
+                                <!-- Chess board squares will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 0.8em; color: #bdc3c7; text-align: center;">
+                            Collected pieces appear solid • Missing pieces appear as outlines
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="upgrades-section">
+                <h2>🚀 Upgrades</h2>
+                <div id="upgradesContainer"></div>
+            </div>
+        </div>
+        
+        <div class="panel prestige-section">
+            <h2>👑 Prestige System</h2>
+            <p>Reset your progress to gain a permanent multiplier!</p>
+            <p id="prestigeInfo">Requires: 1,000,000 Brain Cells</p>
+            <p id="prestigeGain">Next prestige will give: +0.1x multiplier</p>
+            <button class="prestige-button" id="prestigeButton" disabled>Prestige (+0.1x)</button>
+        </div>
+        
+        <div class="panel save-section">
+            <h2>💾 Save Game</h2>
+            <p>Save your progress and load it later!</p>
+            <p id="lastSaveTime">No save found</p>
+            <div class="save-buttons">
+                <button class="save-button" id="saveButton">💾 Save Game</button>
+                <button class="load-button" id="loadButton">📁 Load Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ChessIncrementalGame {
+            constructor() {
+                this.brainCells = 0;
+                this.brainCellsPerSecond = 0;
+                this.clickPower = 1;
+                this.multiplier = 1.0;
+                this.prestigeLevel = 0;
+                
+                this.pieces = [
+                    // White pieces - increased costs
+                    { name: 'White Pawn', cost: 15, owned: 0, bps: 0.5, emoji: '♙', color: 'white', required: 8, boardPositions: [[1,0],[1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7]] },
+                    { name: 'White Knight', cost: 150, owned: 0, bps: 5, emoji: '♘', color: 'white', required: 2, boardPositions: [[0,1],[0,6]] },
+                    { name: 'White Bishop', cost: 750, owned: 0, bps: 25, emoji: '♗', color: 'white', required: 2, boardPositions: [[0,2],[0,5]] },
+                    { name: 'White Rook', cost: 3000, owned: 0, bps: 100, emoji: '♖', color: 'white', required: 2, boardPositions: [[0,0],[0,7]] },
+                    { name: 'White Queen', cost: 15000, owned: 0, bps: 500, emoji: '♕', color: 'white', required: 1, boardPositions: [[0,3]] },
+                    { name: 'White King', cost: 75000, owned: 0, bps: 2500, emoji: '♔', color: 'white', required: 1, boardPositions: [[0,4]] },
+                    // Chess Clock - special piece (not on board)
+                    { name: 'Chess Clock', cost: 125000, owned: 0, bps: 5000, emoji: '⏰', color: 'special', required: 1 },
+                    // Black pieces - increased costs
+                    { name: 'Black Pawn', cost: 400000, owned: 0, bps: 12500, emoji: '♟️', color: 'black', required: 8, boardPositions: [[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[6,6],[6,7]] },
+                    { name: 'Black Knight', cost: 1500000, owned: 0, bps: 50000, emoji: '♞', color: 'black', required: 2, boardPositions: [[7,1],[7,6]] },
+                    { name: 'Black Bishop', cost: 7500000, owned: 0, bps: 250000, emoji: '♝', color: 'black', required: 2, boardPositions: [[7,2],[7,5]] },
+                    { name: 'Black Rook', cost: 40000000, owned: 0, bps: 1250000, emoji: '♜', color: 'black', required: 2, boardPositions: [[7,0],[7,7]] },
+                    { name: 'Black Queen', cost: 200000000, owned: 0, bps: 6250000, emoji: '♛', color: 'black', required: 1, boardPositions: [[7,3]] },
+                    { name: 'Black King', cost: 1000000000, owned: 0, bps: 31250000, emoji: '♚', color: 'black', required: 1, boardPositions: [[7,4]] }
+                ];
+                
+                this.upgrades = [
+                    // Early white piece upgrades - increased costs
+                    { name: 'Chess Books', cost: 375, bought: false, effect: 'Double white pawn production', emoji: '📚', type: 'piece', target: 0 },
+                    { name: 'Coffee & Focus', cost: 1125, bought: false, effect: '+3 click power', emoji: '☕', type: 'click', value: 3 },
+                    { name: 'Training Partner', cost: 2250, bought: false, effect: 'Double white knight production', emoji: '🤝', type: 'piece', target: 1 },
+                    { name: 'Pattern Recognition', cost: 5250, bought: false, effect: '+10% all white piece production', emoji: '🧩', type: 'white_global', value: 0.1 },
+                    { name: 'Chess Computer', cost: 12000, bought: false, effect: 'Double white bishop production', emoji: '💻', type: 'piece', target: 2 },
+                    { name: 'Mental Mathematics', cost: 30000, bought: false, effect: '5x click power', emoji: '🔢', type: 'click', value: 'x5' },
+                    { name: 'Opening Theory', cost: 67500, bought: false, effect: '+25% all white piece production', emoji: '📖', type: 'white_global', value: 0.25 },
+                    { name: 'Grand Master Coach', cost: 150000, bought: false, effect: 'Double white rook production', emoji: '👨‍🏫', type: 'piece', target: 3 },
+                    { name: 'Tactical Vision', cost: 337500, bought: false, effect: '+50% all white piece production', emoji: '👁️', type: 'white_global', value: 0.5 },
+                    { name: 'Chess Championship', cost: 750000, bought: false, effect: 'Double white queen production', emoji: '🏆', type: 'piece', target: 4 },
+                    { name: 'Photographic Memory', cost: 1800000, bought: false, effect: '25x click power', emoji: '📸', type: 'click', value: 'x25' },
+                    { name: 'Chess Legend Status', cost: 3750000, bought: false, effect: 'Double white king production', emoji: '⭐', type: 'piece', target: 5 },
+                    
+                    // Black piece upgrades - increased costs
+                    { name: 'Dark Strategy', cost: 7500000, bought: false, effect: 'Double black pawn production', emoji: '♟️', type: 'piece', target: 7 },
+                    { name: 'Shadow Knight Training', cost: 18000000, bought: false, effect: 'Double black knight production', emoji: '♞', type: 'piece', target: 8 },
+                    { name: 'Neural Enhancement', cost: 37500000, bought: false, effect: '50x click power', emoji: '🧬', type: 'click', value: 'x50' },
+                    { name: 'Dark Bishop Mastery', cost: 90000000, bought: false, effect: 'Double black bishop production', emoji: '♝', type: 'piece', target: 9 },
+                    { name: 'Black Rook Fortress', cost: 225000000, bought: false, effect: 'Double black rook production', emoji: '♜', type: 'piece', target: 10 },
+                    { name: 'Dark Queen Power', cost: 562500000, bought: false, effect: 'Double black queen production', emoji: '♛', type: 'piece', target: 11 },
+                    { name: 'Shadow Realm', cost: 1125000000, bought: false, effect: '+100% all black piece production', emoji: '🌌', type: 'black_global', value: 1.0 },
+                    { name: 'Black King Dominion', cost: 2700000000, bought: false, effect: 'Double black king production', emoji: '♚', type: 'piece', target: 12 },
+                    
+                    // Ultimate upgrades - increased costs
+                    { name: 'Chess Engine Brain', cost: 6750000000, bought: false, effect: '+200% all piece production', emoji: '🤖', type: 'global', value: 2.0 },
+                    { name: 'Time Mastery', cost: 18000000000, bought: false, effect: 'All pieces produce 5x faster', emoji: '⏰', type: 'global', value: 4.0 },
+                    { name: 'Quantum Chess Mind', cost: 45000000000, bought: false, effect: 'Click power becomes 10x stronger', emoji: '⚛️', type: 'click', value: 'mega' },
+                    { name: 'Master Click Control', cost: 90000000000, bought: false, effect: '100x click power', emoji: '👆', type: 'click', value: 'x100' },
+                    { name: 'Chess Singularity', cost: 112500000000, bought: false, effect: 'All production 10x faster', emoji: '🔮', type: 'global', value: 9.0 },
+                    { name: 'Infinite Chess Mastery', cost: 300000000000, bought: false, effect: 'Ultimate power: 20x all production', emoji: '♾️', type: 'global', value: 19.0 }
+                ];
+                
+                this.init();
+                this.gameLoop();
+                this.loadGame(); // Auto-load on start
+            }
+            
+            init() {
+                this.updateDisplay();
+                this.setupEventListeners();
+                this.renderPieces();
+                this.renderUpgrades();
+                this.createChessBoard();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('clickButton').addEventListener('click', () => this.click());
+                document.getElementById('prestigeButton').addEventListener('click', () => this.prestige());
+                document.getElementById('saveButton').addEventListener('click', () => this.saveGame());
+                document.getElementById('loadButton').addEventListener('click', () => this.loadGame());
+            }
+            
+            click() {
+                this.brainCells += this.clickPower * this.multiplier;
+                this.updateDisplay();
+            }
+            
+            buyPiece(index) {
+                const piece = this.pieces[index];
+                if (this.brainCells >= piece.cost) {
+                    this.brainCells -= piece.cost;
+                    piece.owned++;
+                    piece.cost = Math.floor(piece.cost * 1.15);
+                    this.updateBrainCellsPerSecond();
+                    this.renderPieces();
+                    this.updateDisplay();
+                }
+            }
+            
+            buyUpgrade(index) {
+                const upgrade = this.upgrades[index];
+                console.log(`Trying to buy upgrade ${index}: ${upgrade.name}, Cost: ${upgrade.cost}, Have: ${this.brainCells}, Bought: ${upgrade.bought}`);
+                
+                if (this.brainCells >= upgrade.cost && !upgrade.bought) {
+                    console.log(`Buying upgrade: ${upgrade.name}`);
+                    this.brainCells -= upgrade.cost;
+                    upgrade.bought = true;
+                    this.applyUpgrade(index);
+                    this.updateBrainCellsPerSecond();
+                    this.renderUpgrades();
+                    this.updateDisplay();
+                } else {
+                    console.log(`Cannot buy upgrade: insufficient funds or already bought`);
+                }
+            }
+            
+            applyUpgrade(index) {
+                const upgrade = this.upgrades[index];
+                
+                switch(upgrade.type) {
+                    case 'black_global':
+                        // Increase black piece production (indices 7-12)
+                        for (let i = 7; i <= 12; i++) {
+                            this.pieces[i].bps *= (1 + upgrade.value);
+                        }
+                        break;
+                    case 'global':
+                        // Increase all piece production
+                        this.pieces.forEach(piece => {
+                            piece.bps *= (1 + upgrade.value);
+                        });
+                        break;
+                }
+            }
+            
+            updateBrainCellsPerSecond() {
+                this.brainCellsPerSecond = 0;
+                this.pieces.forEach(piece => {
+                    this.brainCellsPerSecond += piece.owned * piece.bps;
+                });
+                this.brainCellsPerSecond *= this.multiplier;
+            }
+            
+            prestige() {
+                const prestigeCost = this.getPrestigeCost();
+                const hasCompleteSet = this.checkCompleteChessSet();
+                
+                if (this.brainCells >= prestigeCost && hasCompleteSet) {
+                    this.prestigeLevel++;
+                    this.multiplier += 0.1;
+                    
+                    // Reset progress
+                    this.brainCells = 0;
+                    this.brainCellsPerSecond = 0;
+                    this.clickPower = 1;
+                    
+                    // Reset pieces
+                    const originalCosts = [15, 150, 750, 3000, 15000, 75000, 125000, 400000, 1500000, 7500000, 40000000, 200000000, 1000000000];
+                    const originalBPS = [0.5, 5, 25, 100, 500, 2500, 5000, 12500, 50000, 250000, 1250000, 6250000, 31250000];
+                    this.pieces.forEach((piece, index) => {
+                        piece.owned = 0;
+                        piece.cost = originalCosts[index];
+                        piece.bps = originalBPS[index];
+                    });
+                    
+                    // Reset upgrades
+                    const originalUpgradeCosts = [375, 1125, 2250, 5250, 12000, 30000, 67500, 150000, 337500, 750000, 1800000, 3750000, 7500000, 18000000, 37500000, 90000000, 225000000, 562500000, 1125000000, 2700000000, 6750000000, 18000000000, 45000000000, 90000000000, 112500000000, 300000000000];
+                    this.upgrades.forEach((upgrade, index) => {
+                        upgrade.bought = false;
+                        upgrade.cost = originalUpgradeCosts[index];
+                    });
+                    
+                    this.updateDisplay();
+                    this.renderPieces();
+                    this.renderUpgrades();
+                }
+            }
+            
+            getPrestigeCost() {
+                // Base cost is 100M, increases by 85% each prestige
+                // Much more expensive and scales faster
+                const cost = 100000000 * Math.pow(1.85, this.prestigeLevel);
+                return Math.floor(Math.min(cost, Number.MAX_SAFE_INTEGER));
+            }
+            
+            createChessBoard() {
+                const boardContainer = document.querySelector('#actualChessBoard');
+                const clockContainer = document.querySelector('#chessClock');
+                boardContainer.innerHTML = '';
+                
+                // Create chess clock display
+                const clockDisplay = document.createElement('div');
+                clockDisplay.className = 'chess-clock-display';
+                clockDisplay.id = 'chessClockDisplay';
+                clockDisplay.innerHTML = '⏰';
+                clockDisplay.title = 'Chess Clock: 0/1';
+                
+                const clockLabel = document.createElement('div');
+                clockLabel.className = 'chess-clock-label';
+                clockLabel.textContent = 'CHESS CLOCK';
+                
+                clockContainer.appendChild(clockDisplay);
+                clockContainer.appendChild(clockLabel);
+                
+                // Create 8x8 chess board
+                for (let row = 7; row >= 0; row--) { // Start from row 7 (black pieces) to row 0 (white pieces)
+                    for (let col = 0; col < 8; col++) {
+                        const square = document.createElement('div');
+                        square.className = `chess-square ${(row + col) % 2 === 0 ? 'white' : 'black'}`;
+                        square.dataset.row = row;
+                        square.dataset.col = col;
+                        boardContainer.appendChild(square);
+                    }
+                }
+                
+                this.updateChessBoard();
+            }
+            
+            updateChessBoard() {
+                const squares = document.querySelectorAll('.chess-square');
+                
+                // Clear all squares first
+                squares.forEach(square => {
+                    square.innerHTML = '';
+                });
+                
+                // Track collected pieces count for progress
+                let totalRequired = 0;
+                let totalCollected = 0;
+                
+                // Update chess clock display
+                const chessClockPiece = this.pieces.find(p => p.name === 'Chess Clock');
+                const clockDisplay = document.getElementById('chessClockDisplay');
+                if (chessClockPiece && clockDisplay) {
+                    const isClockCollected = chessClockPiece.owned >= chessClockPiece.required;
+                    clockDisplay.className = `chess-clock-display ${isClockCollected ? 'collected' : 'missing'}`;
+                    clockDisplay.title = `Chess Clock: ${chessClockPiece.owned}/${chessClockPiece.required}`;
+                    
+                    totalRequired += chessClockPiece.required;
+                    totalCollected += Math.min(chessClockPiece.owned, chessClockPiece.required);
+                }
+                
+                // Place pieces on their designated squares
+                this.pieces.forEach((piece, pieceIndex) => {
+                    if (!piece.boardPositions) return; // Skip Chess Clock (handled separately)
+                    
+                    totalRequired += piece.required;
+                    const collectedCount = Math.min(piece.owned, piece.required);
+                    totalCollected += collectedCount;
+                    
+                    piece.boardPositions.forEach((position, posIndex) => {
+                        const [row, col] = position;
+                        const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                        if (square) {
+                            const pieceElement = document.createElement('div');
+                            pieceElement.className = 'chess-piece';
+                            pieceElement.textContent = piece.emoji;
+                            
+                            // Check if this specific piece position is collected
+                            const isCollected = posIndex < collectedCount;
+                            pieceElement.classList.add(isCollected ? 'collected' : 'missing');
+                            
+                            // Add tooltip
+                            pieceElement.title = `${piece.name}: ${collectedCount}/${piece.required}`;
+                            
+                            square.appendChild(pieceElement);
+                        }
+                    });
+                });
+                
+                // Update progress indicator
+                this.updateProgressIndicator(totalCollected, totalRequired);
+            }
+            
+            updateProgressIndicator(collected, total) {
+                const progressContainer = document.querySelector('#chessBoard').parentElement;
+                let progressDiv = progressContainer.querySelector('.progress-indicator');
+                
+                if (!progressDiv) {
+                    progressDiv = document.createElement('div');
+                    progressDiv.className = 'progress-indicator';
+                    progressContainer.appendChild(progressDiv);
+                }
+                
+                const percentage = Math.round((collected / total) * 100);
+                const isComplete = collected >= total;
+                
+                progressDiv.innerHTML = `
+                    <div style="color: ${isComplete ? '#27ae60' : '#f39c12'}; font-weight: bold;">
+                        ${isComplete ? '✅ Complete Chess Set!' : `📊 Progress: ${collected}/${total} pieces (${percentage}%)`}
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+            }
+            
+            renderPieces() {
+                const container = document.getElementById('piecesContainer');
+                container.innerHTML = '';
+                
+                this.pieces.forEach((piece, index) => {
+                    const canAfford = this.brainCells >= piece.cost;
+                    const div = document.createElement('div');
+                    div.className = 'piece-item';
+                    
+                    // Apply styling based on piece type
+                    if (index >= 7) { // Black pieces (indices 7-12 now)
+                        div.classList.add('black-piece');
+                    } else if (index === 6) { // Chess clock
+                        div.classList.add('special-piece');
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="piece-info">
+                            <div class="piece-name"><span style="filter: ${index >= 7 ? 'brightness(0.2) contrast(2)' : 'none'};">${piece.emoji}</span> ${piece.name}</div>
+                            <div class="piece-details">Owned: ${piece.owned}${piece.required ? `/${piece.required}` : ''} | ${this.formatNumber(piece.bps * this.multiplier)} BPS each</div>
+                        </div>
+                        <button class="buy-button" ${canAfford ? '' : 'disabled'}>
+                            ${this.formatNumber(piece.cost)} BC
+                        </button>
+                    `;
+                    
+                    div.querySelector('button').addEventListener('click', () => this.buyPiece(index));
+                    container.appendChild(div);
+                });
+                
+                this.updateChessBoard();
+                this.updatePrestigeRequirements();
+            }
+            
+            renderUpgrades() {
+                const container = document.getElementById('upgradesContainer');
+                container.innerHTML = '';
+                
+                this.upgrades.forEach((upgrade, index) => {
+                    // Create better upgrade effect descriptions with formatted numbers
+                    let effectText = upgrade.effect;
+                    if (upgrade.type === 'piece' && upgrade.target !== undefined) {
+                        const targetPiece = this.pieces[upgrade.target];
+                        const currentBPS = targetPiece.bps * this.multiplier;
+                        const newBPS = currentBPS * 2;
+                        effectText = `Double ${targetPiece.name.toLowerCase()} production (${this.formatNumber(currentBPS)} → ${this.formatNumber(newBPS)} BPS)`;
+                    }
+                    
+                    // Check if this upgrade uses a black chess piece emoji
+                    const blackPieceEmojis = ['♟️', '♞', '♝', '♜', '♛', '♚'];
+                    const isBlackPiece = blackPieceEmojis.includes(upgrade.emoji);
+                    
+                    const div = document.createElement('div');
+                    div.className = 'upgrade-item';
+                    div.innerHTML = `
+                        <div class="upgrade-info">
+                            <div class="upgrade-name"><span style="filter: ${isBlackPiece ? 'brightness(0.2) contrast(2)' : 'none'};">${upgrade.emoji}</span> ${upgrade.name}</div>
+                            <div class="upgrade-details">${effectText}</div>
+                        </div>
+                        <button class="buy-button" id="upgrade-btn-${index}">
+                            ${upgrade.bought ? 'OWNED' : this.formatNumber(upgrade.cost, 1) + ' BC'}
+                        </button>
+                    `;
+                    
+                    container.appendChild(div);
+                });
+                
+                // Add event listeners after all buttons are created
+                this.upgrades.forEach((upgrade, index) => {
+                    const button = document.getElementById(`upgrade-btn-${index}`);
+                    if (button) {
+                        button.onclick = () => {
+                            console.log(`Clicked upgrade ${index}: ${upgrade.name}`);
+                            if (!upgrade.bought && this.brainCells >= upgrade.cost) {
+                                this.buyUpgrade(index);
+                            }
+                        };
+                    }
+                });
+            }
+            
+            updateDisplay() {
+                document.getElementById('brainCells').textContent = this.formatNumber(this.brainCells, 1);
+                document.getElementById('brainCellsPerSecond').textContent = this.formatNumber(this.brainCellsPerSecond, 1) + '/sec';
+                document.getElementById('multiplier').textContent = `Multiplier: x${this.multiplier.toFixed(2)}`;
+                document.getElementById('clickPower').textContent = `Click Power: ${this.formatNumber(this.clickPower * this.multiplier, 1)}`;
+                
+                const prestigeCost = this.getPrestigeCost();
+                const prestigeButton = document.getElementById('prestigeButton');
+                const hasCompleteSet = this.checkCompleteChessSet();
+                const canPrestige = this.brainCells >= prestigeCost && hasCompleteSet;
+                prestigeButton.disabled = !canPrestige;
+                
+                document.getElementById('prestigeInfo').textContent = 
+                    `Requires: ${this.formatNumber(prestigeCost, 1)} Brain Cells + Complete Chess Set | Prestige Level: ${this.prestigeLevel}`;
+                document.getElementById('prestigeGain').textContent = 
+                    `Next prestige will give: +0.1x multiplier (Total: x${(this.multiplier + 0.1).toFixed(2)})`;
+                prestigeButton.textContent = `Prestige (+0.1x) - ${hasCompleteSet ? 'Ready!' : 'Need Complete Set'}`;
+                
+                // Update button states without re-rendering
+                this.updateButtonStates();
+            }
+            
+            updateButtonStates() {
+                // Update piece buttons
+                const pieceButtons = document.querySelectorAll('#piecesContainer .buy-button');
+                this.pieces.forEach((piece, index) => {
+                    if (pieceButtons[index]) {
+                        const canAfford = this.brainCells >= piece.cost;
+                        pieceButtons[index].disabled = !canAfford;
+                        pieceButtons[index].textContent = this.formatNumber(piece.cost, 1) + ' BC';
+                    }
+                });
+                
+                // Update upgrade buttons
+                this.upgrades.forEach((upgrade, index) => {
+                    const button = document.getElementById(`upgrade-btn-${index}`);
+                    if (button) {
+                        const canAfford = this.brainCells >= upgrade.cost;
+                        button.disabled = !canAfford || upgrade.bought;
+                        button.textContent = upgrade.bought ? 'OWNED' : this.formatNumber(upgrade.cost, 1) + ' BC';
+                    }
+                });
+            }
+            
+            formatNumber(num, decimals = 1) {
+                // Always add commas for numbers, then apply K/M/B/T formatting
+                if (num >= 1e12) {
+                    const formatted = (num / 1e12).toFixed(decimals);
+                    return parseFloat(formatted).toLocaleString() + 'T';
+                } else if (num >= 1e9) {
+                    const formatted = (num / 1e9).toFixed(decimals);
+                    return parseFloat(formatted).toLocaleString() + 'B';
+                } else if (num >= 1e6) {
+                    const formatted = (num / 1e6).toFixed(decimals);
+                    return parseFloat(formatted).toLocaleString() + 'M';
+                } else if (num >= 1e3) {
+                    const formatted = (num / 1e3).toFixed(decimals);
+                    return parseFloat(formatted).toLocaleString() + 'K';
+                } else {
+                    // For numbers under 1000, show full number with commas
+                    return num.toLocaleString('en-US', {
+                        minimumFractionDigits: decimals < 1 ? 0 : decimals,
+                        maximumFractionDigits: decimals < 1 ? 0 : decimals
+                    });
+                }
+            }
+            
+            gameLoop() {
+                this.brainCells += this.brainCellsPerSecond / 60;
+                this.updateDisplay();
+                
+                // Auto-save every 30 seconds
+                if (!this.lastAutoSave || Date.now() - this.lastAutoSave > 30000) {
+                    this.saveGame(true); // true = silent autosave
+                    this.lastAutoSave = Date.now();
+                }
+                
+                requestAnimationFrame(() => this.gameLoop());
+            }
+            
+            saveGame(silent = false) {
+                const gameData = {
+                    brainCells: this.brainCells,
+                    brainCellsPerSecond: this.brainCellsPerSecond,
+                    clickPower: this.clickPower,
+                    multiplier: this.multiplier,
+                    prestigeLevel: this.prestigeLevel,
+                    pieces: this.pieces.map(piece => ({
+                        cost: piece.cost,
+                        owned: piece.owned,
+                        bps: piece.bps
+                    })),
+                    upgrades: this.upgrades.map(upgrade => ({
+                        cost: upgrade.cost,
+                        bought: upgrade.bought
+                    })),
+                    saveTime: Date.now(),
+                    version: '1.0'
+                };
+                
+                try {
+                    const saveData = JSON.stringify(gameData);
+                    // Store in memory object instead of localStorage
+                    window.chessSaveData = saveData;
+                    
+                    if (!silent) {
+                        this.showSaveMessage('Game saved successfully! 💾');
+                    }
+                    this.updateLastSaveDisplay();
+                } catch (error) {
+                    console.error('Save failed:', error);
+                    if (!silent) {
+                        this.showSaveMessage('Save failed! ❌', true);
+                    }
+                }
+            }
+            
+            loadGame() {
+                try {
+                    const saveData = window.chessSaveData;
+                    if (!saveData) {
+                        this.updateLastSaveDisplay();
+                        return;
+                    }
+                    
+                    const gameData = JSON.parse(saveData);
+                    
+                    // Load basic stats
+                    this.brainCells = gameData.brainCells || 0;
+                    this.brainCellsPerSecond = gameData.brainCellsPerSecond || 0;
+                    this.clickPower = gameData.clickPower || 1;
+                    this.multiplier = gameData.multiplier || 1.0;
+                    this.prestigeLevel = gameData.prestigeLevel || 0;
+                    
+                    // Load pieces
+                    if (gameData.pieces) {
+                        gameData.pieces.forEach((savedPiece, index) => {
+                            if (this.pieces[index]) {
+                                this.pieces[index].cost = savedPiece.cost;
+                                this.pieces[index].owned = savedPiece.owned;
+                                this.pieces[index].bps = savedPiece.bps;
+                            }
+                        });
+                    }
+                    
+                    // Load upgrades
+                    if (gameData.upgrades) {
+                        gameData.upgrades.forEach((savedUpgrade, index) => {
+                            if (this.upgrades[index]) {
+                                this.upgrades[index].cost = savedUpgrade.cost;
+                                this.upgrades[index].bought = savedUpgrade.bought;
+                            }
+                        });
+                    }
+                    
+                    // Recalculate BPS and update display
+                    this.updateBrainCellsPerSecond();
+                    this.updateDisplay();
+                    this.renderPieces();
+                    this.renderUpgrades();
+                    this.updateLastSaveDisplay(gameData.saveTime);
+                    
+                    this.showSaveMessage('Game loaded successfully! 📁');
+                } catch (error) {
+                    console.error('Load failed:', error);
+                    this.showSaveMessage('Load failed! ❌', true);
+                    this.updateLastSaveDisplay();
+                }
+            }
+            
+            showSaveMessage(message, isError = false) {
+                const messageElement = document.createElement('div');
+                messageElement.textContent = message;
+                messageElement.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${isError ? 'linear-gradient(45deg, #e74c3c, #c0392b)' : 'linear-gradient(45deg, #27ae60, #2ecc71)'};
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    z-index: 1000;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                    animation: slideIn 0.3s ease;
+                `;
+                
+                document.body.appendChild(messageElement);
+                
+                setTimeout(() => {
+                    messageElement.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => document.body.removeChild(messageElement), 300);
+                }, 3000);
+            }
+            
+            updateLastSaveDisplay(saveTime) {
+                const lastSaveElement = document.getElementById('lastSaveTime');
+                if (saveTime) {
+                    const date = new Date(saveTime);
+                    lastSaveElement.textContent = `Last saved: ${date.toLocaleString()}`;
+                } else if (window.chessSaveData) {
+                    try {
+                        const gameData = JSON.parse(window.chessSaveData);
+                        const date = new Date(gameData.saveTime);
+                        lastSaveElement.textContent = `Last saved: ${date.toLocaleString()}`;
+                    } catch {
+                        lastSaveElement.textContent = 'Save data found (unknown time)';
+                    }
+                } else {
+                    lastSaveElement.textContent = 'No save found';
+                }
+            }
+            
+            checkCompleteChessSet() {
+                return this.pieces.every(piece => piece.owned >= piece.required);
+            }
+            
+            updatePrestigeRequirements() {
+                // This method is now handled by updateChessBoard()
+                // Keep for compatibility but chess board does the visual work
+            }
+        }
+        
+        // Start the game
+        new ChessIncrementalGame();
+    </script>
+</body>
+</html> 'piece':
+                        // Double specific piece production
+                        this.pieces[upgrade.target].bps *= 2;
+                        break;
+                    case 'click':
+                        // Increase click power
+                        if (upgrade.value === 'triple') {
+                            this.clickPower *= 3;
+                        } else if (upgrade.value === 'mega') {
+                            this.clickPower *= 10;
+                        } else if (upgrade.value === 'x5') {
+                            this.clickPower *= 5;
+                        } else if (upgrade.value === 'x25') {
+                            this.clickPower *= 25;
+                        } else if (upgrade.value === 'x50') {
+                            this.clickPower *= 50;
+                        } else if (upgrade.value === 'x100') {
+                            this.clickPower *= 100;
+                        } else {
+                            this.clickPower += upgrade.value;
+                        }
+                        break;
+                    case 'white_global':
+                        // Increase white piece production (indices 0-5)
+                        for (let i = 0; i <= 5; i++) {
+                            this.pieces[i].bps *= (1 + upgrade.value);
+                        }
+                        break;
+                    case
